@@ -33,7 +33,7 @@ export const AnimatedBackground: React.FC = () => {
   const energyPulse = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Initialize particles only once
+    // Set up the particle system on first render
     if (particles.current.length === 0) {
       const colors = ['#FF007A', '#00FFB3', '#8C1BFF', '#FF6F61', '#00BFFF', '#FFD600'];
       const types: ('glow' | 'spark' | 'energy')[] = ['glow', 'spark', 'energy'];
@@ -49,7 +49,7 @@ export const AnimatedBackground: React.FC = () => {
         type: types[Math.floor(Math.random() * types.length)],
       }));
 
-      // Initialize energy flows
+      // Create energy flow effects for added visual depth
       energyFlows.current = Array.from({ length: 8 }, (_, i) => ({
         id: i,
         x: new Animated.Value(Math.random() * width),
@@ -59,7 +59,7 @@ export const AnimatedBackground: React.FC = () => {
       }));
     }
 
-    // Start animations
+    // Main animation controller
     const startAnimations = () => {
       if (isAnimatingRef.current) return;
       isAnimatingRef.current = true;
@@ -67,7 +67,7 @@ export const AnimatedBackground: React.FC = () => {
       const animateParticles = () => {
         if (!isAnimatingRef.current) return;
 
-        // Clear previous animations
+        // Clean up any previous animations
         animationsRef.current.forEach(animation => animation.stop());
         animationsRef.current = [];
 
@@ -127,7 +127,7 @@ export const AnimatedBackground: React.FC = () => {
           parallelAnimation.start();
         });
 
-        // Animate energy flows
+        // Add movement to energy flows for dynamic background
         energyFlows.current.forEach((flow) => {
           const flowAnimations = [
             Animated.timing(flow.x, {
@@ -161,7 +161,7 @@ export const AnimatedBackground: React.FC = () => {
           flowParallel.start();
         });
 
-        // Constellation pulse animation
+        // Subtle breathing effect for background stars
         Animated.loop(
           Animated.sequence([
             Animated.timing(constellationOpacity, {
@@ -177,7 +177,7 @@ export const AnimatedBackground: React.FC = () => {
           ])
         ).start();
 
-        // Energy pulse animation
+        // Overall energy pulse for atmosphere
         Animated.loop(
           Animated.sequence([
             Animated.timing(energyPulse, {
@@ -193,7 +193,7 @@ export const AnimatedBackground: React.FC = () => {
           ])
         ).start();
 
-        // Continue the loop
+        // Schedule next animation cycle
         if (timeoutRef.current) {
           clearTimeout(timeoutRef.current);
         }
@@ -250,20 +250,20 @@ export const AnimatedBackground: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Multi-layered gradient background */}
+      {/* Deep space gradient background */}
       <LinearGradient
         colors={[
-          'rgba(10, 10, 15, 1)',     // Void black
-          'rgba(27, 27, 42, 0.95)',  // Deep space
-          'rgba(42, 27, 61, 0.85)',  // Electric dark
-          'rgba(27, 27, 42, 0.95)',  // Deep space
-          'rgba(10, 10, 15, 1)',     // Void black
+          'rgba(10, 10, 15, 1)',
+          'rgba(27, 27, 42, 0.95)',
+          'rgba(42, 27, 61, 0.85)',
+          'rgba(27, 27, 42, 0.95)',
+          'rgba(10, 10, 15, 1)',
         ]}
         locations={[0, 0.25, 0.5, 0.75, 1]}
         style={styles.gradient}
       />
 
-      {/* Constellation layer */}
+      {/* Background stars with breathing effect */}
       <Animated.View style={[styles.constellationLayer, { opacity: constellationOpacity }]}>
         {Array.from({ length: 50 }).map((_, i) => (
           <View
@@ -281,7 +281,7 @@ export const AnimatedBackground: React.FC = () => {
         ))}
       </Animated.View>
 
-      {/* Energy pulse overlay */}
+      {/* Ambient energy pulse overlay */}
       <Animated.View
         style={[
           styles.energyPulseLayer,
@@ -294,7 +294,7 @@ export const AnimatedBackground: React.FC = () => {
         ]}
       />
 
-      {/* Energy flows */}
+      {/* Flowing energy orbs */}
       {energyFlows.current.map((flow) => (
         <Animated.View
           key={`flow-${flow.id}`}
@@ -317,7 +317,7 @@ export const AnimatedBackground: React.FC = () => {
         />
       ))}
 
-      {/* Enhanced particles */}
+      {/* Animated particles with different behaviors */}
       {particles.current.map((particle) => (
         <Animated.View
           key={particle.id}

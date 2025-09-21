@@ -20,7 +20,7 @@ interface Sparkle {
 export const SparklesBackground: React.FC = () => {
   const sparkles = useRef<Sparkle[]>([]);
   const animationsRef = useRef<Animated.CompositeAnimation[]>([]);
-  const frameRef = useRef<number>();
+  const frameRef = useRef<number | undefined>(undefined);
   const isAnimatingRef = useRef(false);
 
   useEffect(() => {
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   },
   gradient: {
     flex: 1,
-    backgroundColor: '#000000', // Pure black background
+    backgroundColor: '#000000',
   },
   sparklesContainer: {
     position: 'absolute',
@@ -161,17 +161,10 @@ const styles = StyleSheet.create({
   },
   sparkle: {
     position: 'absolute',
-    borderRadius: 4, // Larger border radius for bigger sparkles
+    borderRadius: 4,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.9,
     shadowRadius: 6,
     elevation: 6,
-  },
-  constellationLayer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
   },
 });

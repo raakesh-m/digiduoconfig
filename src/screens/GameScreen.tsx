@@ -28,19 +28,23 @@ import {
 } from '../logic/game';
 
 export const GameScreen: React.FC = () => {
+  // Core game state
   const [currentLevel, setCurrentLevel] = useState(1);
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [selectedCells, setSelectedCells] = useState<GridCell[]>([]);
   const [invalidCells, setInvalidCells] = useState<GridCell[]>([]);
+
+  // Score and progression tracking
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [lastMatchTime, setLastMatchTime] = useState<number | null>(null);
 
+  // Timer and lifecycle refs
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const appStateRef = useRef(AppState.currentState);
   const invalidFlashTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Animation refs for enhanced UI
+  // UI animation values
   const headerSlideAnim = useRef(new Animated.Value(-100)).current;
   const footerSlideAnim = useRef(new Animated.Value(100)).current;
   const scorePopAnim = useRef(new Animated.Value(1)).current;
@@ -53,12 +57,13 @@ export const GameScreen: React.FC = () => {
   const statCardPulseAnim = useRef(new Animated.Value(1)).current;
 
   const initializeGame = (levelId: number) => {
-    // Clean up any pending timers
+    // Clean up any existing timeouts
     if (invalidFlashTimeoutRef.current) {
       clearTimeout(invalidFlashTimeoutRef.current);
       invalidFlashTimeoutRef.current = null;
     }
 
+    // Set up new game state
     const config = getLevelConfig(levelId);
     const gameGrid = generateGrid(config);
 
@@ -77,15 +82,15 @@ export const GameScreen: React.FC = () => {
     setInvalidCells([]);
     setCurrentLevel(levelId);
 
-    // Enhanced UI animation sequence on game start
+    // Smooth entrance animations for the UI
     Animated.sequence([
-      // First, fade in the grid
+      // Grid appears first
       Animated.timing(gridFadeAnim, {
         toValue: 1,
         duration: 600,
         useNativeDriver: true,
       }),
-      // Then slide in header and footer
+      // Then UI elements slide in
       Animated.parallel([
         Animated.spring(headerSlideAnim, {
           toValue: 0,
@@ -108,7 +113,7 @@ export const GameScreen: React.FC = () => {
       ])
     ]).start();
 
-    // Subtle stat card pulse animation
+    // Start subtle background animations
     Animated.loop(
       Animated.sequence([
         Animated.timing(statCardPulseAnim, {
@@ -124,7 +129,6 @@ export const GameScreen: React.FC = () => {
       ])
     ).start();
 
-    // Start continuous button animations
     Animated.loop(
       Animated.timing(buttonShimmerAnim, {
         toValue: 1,
@@ -133,7 +137,6 @@ export const GameScreen: React.FC = () => {
       })
     ).start();
 
-    // Continuous button pulse
     Animated.loop(
       Animated.sequence([
         Animated.timing(buttonPulseAnim, {
@@ -242,35 +245,35 @@ export const GameScreen: React.FC = () => {
   const handleCellPress = (cell: GridCell) => {
     if (!gameState || gameState.isGameOver || cell.isDulled) return;
 
-    // Don't allow more than 2 selections
+    // Limit selection to two cells max
     if (selectedCells.length >= 2) return;
 
-    // Can't select same cell twice
+    // Prevent selecting the same cell twice
     if (selectedCells.some(c => c.id === cell.id)) return;
 
     const newSelection = [...selectedCells, cell];
     setSelectedCells(newSelection);
 
-    // Process pair when we have 2 cells
+    // Check for match when two cells are selected
     if (newSelection.length === 2) {
       const [first, second] = newSelection;
 
       if (isValidPair(first.value, second.value)) {
-        // Valid match - calculate score and update game
+        // Calculate score with streak bonus
         const currentTime = Date.now();
         const timeSinceLastMatch = lastMatchTime ? currentTime - lastMatchTime : null;
-        const isQuickMatch = timeSinceLastMatch && timeSinceLastMatch < 3000; // 3 seconds
+        const isQuickMatch = timeSinceLastMatch && timeSinceLastMatch < 3000;
 
         const newStreak = isQuickMatch ? streak + 1 : 1;
         const baseScore = (first.value + second.value) * 10;
-        const streakMultiplier = Math.min(newStreak, 5); // Max 5x multiplier
+        const streakMultiplier = Math.min(newStreak, 5);
         const scoreToAdd = baseScore * streakMultiplier;
 
         setStreak(newStreak);
         setScore(prev => prev + scoreToAdd);
         setLastMatchTime(currentTime);
 
-        // Animate score pop and streak glow
+        // Visual feedback for successful match
         Animated.sequence([
           Animated.timing(scorePopAnim, {
             toValue: 1.3,
@@ -316,12 +319,12 @@ export const GameScreen: React.FC = () => {
         setSelectedCells([]);
         setInvalidCells([]);
       } else {
-        // Invalid match - reset streak and show error briefly
+        // Invalid match - reset streak and show feedback
         setStreak(0);
         setInvalidCells(newSelection);
         setSelectedCells([]);
 
-        // Clear error state
+        // Clear invalid state after brief flash
         if (invalidFlashTimeoutRef.current) {
           clearTimeout(invalidFlashTimeoutRef.current);
         }
@@ -727,6 +730,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 100,
   },
+  headerContainer: {
+    position: 'relative',
+    zIndex: 10,
+  },
   header: {
     paddingTop: screenHeight > 700 ? 60 : 50,
     paddingHorizontal: screenWidth * 0.05,
@@ -739,6 +746,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+  },
+  glassOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   headerContent: {
     position: 'relative',

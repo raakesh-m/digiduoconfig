@@ -61,7 +61,7 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
       ]).start();
     }
 
-    // Continuous subtle pulse for normal cells
+    // Gentle breathing animation for inactive cells
     if (state === 'normal') {
       Animated.loop(
         Animated.sequence([
@@ -78,9 +78,7 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
         ])
       ).start();
     }
-
-    // Removed shimmer effect to prevent line artifacts
-  }, [state, scaleAnim, glowAnim, hoverGlowAnim, pulseAnim, shimmerAnim, cell.value]);
+  }, [state, scaleAnim, glowAnim, hoverGlowAnim, pulseAnim, cell.value]);
 
   const handlePress = () => {
     if (state === 'dulled') return;
@@ -183,8 +181,6 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
     return '#AAAAAA';
   };
 
-  // Shimmer gradient function removed
-
   if (cell.value === 0) {
     return (
       <View style={[styles.cell, styles.emptyCell]}>
@@ -210,7 +206,7 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
           }
         ]}
       >
-        {/* Enhanced outer glow ring */}
+        {/* Glow effect for selected cells */}
         <Animated.View
           style={[
             styles.glowRing,
@@ -228,9 +224,9 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
           ]}
         />
 
-        {/* Premium glassmorphism background */}
+        {/* Cell background with gradient based on value */}
         <LinearGradient
-          colors={getGradientColors()}
+          colors={getGradientColors() as [string, string, ...string[]]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={[
@@ -242,12 +238,10 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
             }
           ]}
         >
-          {/* Inner glass reflection */}
+          {/* Glass reflection effect */}
           <View style={styles.glassReflection} />
 
-          {/* Shimmer overlay removed to prevent line artifacts */}
-
-          {/* Enhanced cell content */}
+          {/* Cell number and visual indicators */}
           <View style={styles.contentContainer}>
             <Text style={[
               styles.cellText,
@@ -265,7 +259,7 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
               {cell.value}
             </Text>
 
-            {/* Value indicator dots for high numbers */}
+            {/* Special indicator dots for high-value cells */}
             {cell.value >= 9 && (
               <View style={styles.valueDots}>
                 {Array.from({ length: Math.min(cell.value - 8, 3) }).map((_, i) => (
@@ -281,9 +275,9 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
 };
 
 const getCellSize = () => {
-  // Responsive sizing - cells should fit nicely on any screen
+  // Calculate responsive cell size based on screen width
   const baseSize = Math.min(screenWidth / 12, 45);
-  return Math.max(baseSize, 35); // never smaller than 35px for touch targets
+  return Math.max(baseSize, 35);
 };
 
 const styles = StyleSheet.create({

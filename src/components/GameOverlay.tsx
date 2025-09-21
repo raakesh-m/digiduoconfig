@@ -28,6 +28,7 @@ export const GameOverlay: React.FC<Props> = ({
 
   useEffect(() => {
     if (visible) {
+      // Smooth entrance animation for the modal
       Animated.parallel([
         Animated.spring(scaleAnim, {
           toValue: 1,
@@ -42,8 +43,8 @@ export const GameOverlay: React.FC<Props> = ({
         }),
       ]).start();
 
+      // Special celebration effects for winning
       if (isWon) {
-        // Victory celebration animation
         Animated.loop(
           Animated.sequence([
             Animated.timing(sparkleAnim, {
@@ -75,6 +76,7 @@ export const GameOverlay: React.FC<Props> = ({
         ).start();
       }
     } else {
+      // Reset all animation values when hidden
       scaleAnim.setValue(0);
       fadeAnim.setValue(0);
       sparkleAnim.setValue(0);
@@ -88,7 +90,7 @@ export const GameOverlay: React.FC<Props> = ({
       animationType="none"
     >
       <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
-        {/* Particle effects for victory */}
+        {/* Victory confetti particles */}
         {isWon && (
           <>
             {Array.from({ length: 20 }).map((_, i) => (
@@ -141,7 +143,7 @@ export const GameOverlay: React.FC<Props> = ({
             end={{ x: 1, y: 1 }}
             style={styles.modal}
           >
-            {/* Glassmorphism overlay */}
+            {/* Glass effect overlay */}
             <View style={styles.glassOverlay} />
 
             <View style={styles.content}>
@@ -265,7 +267,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    backdropFilter: 'blur(20px)',
     borderRadius: 32,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.15)',
