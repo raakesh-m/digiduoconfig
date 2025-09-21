@@ -12,7 +12,6 @@ interface Props {
 
 export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const shakeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (state === 'selected') {
@@ -24,7 +23,6 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
       }).start();
     } else if (state === 'invalid') {
       // Reset immediately for invalid
-      shakeAnim.setValue(0);
       scaleAnim.setValue(1);
     } else {
       // Return to normal
@@ -34,7 +32,7 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
         useNativeDriver: Platform.OS !== 'web',
       }).start();
     }
-  }, [state, scaleAnim, shakeAnim]);
+  }, [state, scaleAnim]);
 
   const handlePress = () => {
     if (state === 'dulled') return;
@@ -102,7 +100,6 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
             elevation: state === 'selected' ? 8 : 4,
             transform: [
               { scale: scaleAnim },
-              { translateX: shakeAnim },
             ]
           }
         ]}

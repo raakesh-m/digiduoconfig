@@ -101,10 +101,13 @@ export const GameScreen: React.FC = () => {
 
     const handleAppStateChange = (nextAppState: any) => {
       if (appStateRef.current.match(/inactive|background/) && nextAppState === 'active') {
-        // App came to foreground
-        if (gameState && !gameState.isGameOver) {
-          startTimer();
-        }
+        // App came to foreground - use a ref or check current state
+        setGameState(currentState => {
+          if (currentState && !currentState.isGameOver) {
+            startTimer();
+          }
+          return currentState;
+        });
       } else if (nextAppState.match(/inactive|background/)) {
         // App went to background
         stopTimer();
@@ -218,11 +221,6 @@ export const GameScreen: React.FC = () => {
     }
   };
 
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   if (!gameState) {
     return (
