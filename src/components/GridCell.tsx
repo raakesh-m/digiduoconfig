@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { TouchableOpacity, Text, StyleSheet, View, Animated, Dimensions, Platform } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { GridCell as GridCellType, CellState } from '../types';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -12,107 +13,268 @@ interface Props {
 
 export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
+  const hoverGlowAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (state === 'selected') {
-      // Scale up when selected
-      Animated.timing(scaleAnim, {
-        toValue: 1.1,
-        duration: 100,
-        useNativeDriver: Platform.OS !== 'web',
-      }).start();
-    } else if (state === 'invalid') {
-      // Reset immediately for invalid
-      scaleAnim.setValue(1);
+      // Enhanced selection animation with glow
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 1.15,
+          friction: 6,
+          tension: 180,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: false,
+        }),
+        Animated.timing(hoverGlowAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: false,
+        })
+      ]).start();
     } else {
-      // Return to normal
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: Platform.OS !== 'web',
-      }).start();
+      // Return to normal with smooth transitions
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 8,
+          tension: 150,
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: false,
+        }),
+        Animated.timing(hoverGlowAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: false,
+        })
+      ]).start();
     }
-  }, [state, scaleAnim]);
+
+    // Continuous subtle pulse for normal cells
+    if (state === 'normal') {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.02,
+            duration: 2000,
+            useNativeDriver: Platform.OS !== 'web',
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 2000,
+            useNativeDriver: Platform.OS !== 'web',
+          })
+        ])
+      ).start();
+    }
+
+    // Removed shimmer effect to prevent line artifacts
+  }, [state, scaleAnim, glowAnim, hoverGlowAnim, pulseAnim, shimmerAnim, cell.value]);
 
   const handlePress = () => {
     if (state === 'dulled') return;
     onPress(cell);
   };
 
-  const getBackgroundColor = () => {
+  const getGradientColors = () => {
+    const value = cell.value;
+
     switch (state) {
       case 'selected':
-        return 'rgba(96, 165, 250, 0.9)';
+        return [
+          'rgba(0, 255, 179, 0.95)',   // Bright cyan
+          'rgba(140, 27, 255, 0.85)',  // Electric purple
+          'rgba(255, 0, 122, 0.90)'    // Hot pink
+        ];
       case 'dulled':
-        return 'rgba(71, 85, 105, 0.4)'; // faded out when matched
+        return [
+          'rgba(45, 45, 55, 0.6)',
+          'rgba(35, 35, 45, 0.7)',
+          'rgba(25, 25, 35, 0.8)'
+        ];
       case 'invalid':
-        return 'rgba(239, 68, 68, 0.9)'; // red flash for bad moves
+        return [
+          'rgba(255, 50, 50, 0.95)',
+          'rgba(255, 20, 20, 0.85)',
+          'rgba(200, 0, 0, 0.9)'
+        ];
       default:
-        return 'rgba(100, 116, 139, 0.8)';
+        // Dynamic colors based on cell value for premium look
+        if (value >= 9) {
+          return [
+            'rgba(255, 215, 0, 0.9)',    // Gold
+            'rgba(255, 140, 0, 0.85)',   // Orange gold
+            'rgba(255, 69, 0, 0.8)'      // Red orange
+          ];
+        } else if (value >= 7) {
+          return [
+            'rgba(138, 43, 226, 0.85)',  // Blue violet
+            'rgba(75, 0, 130, 0.9)',     // Indigo
+            'rgba(148, 0, 211, 0.8)'     // Dark violet
+          ];
+        } else if (value >= 5) {
+          return [
+            'rgba(0, 191, 255, 0.85)',   // Deep sky blue
+            'rgba(30, 144, 255, 0.9)',   // Dodger blue
+            'rgba(65, 105, 225, 0.8)'    // Royal blue
+          ];
+        } else if (value >= 3) {
+          return [
+            'rgba(50, 205, 50, 0.85)',   // Lime green
+            'rgba(34, 139, 34, 0.9)',    // Forest green
+            'rgba(0, 128, 0, 0.8)'       // Green
+          ];
+        } else {
+          return [
+            'rgba(105, 105, 105, 0.75)', // Dim gray
+            'rgba(85, 85, 85, 0.85)',    // Gray
+            'rgba(65, 65, 65, 0.8)'      // Dark gray
+          ];
+        }
     }
   };
 
-  const getBorderColor = () => {
+  const getBorderColors = () => {
+    const value = cell.value;
+
     switch (state) {
       case 'selected':
-        return '#60A5FA';
+        return ['rgba(0, 255, 179, 0.9)', 'rgba(255, 0, 122, 0.7)'];
       case 'dulled':
-        return 'rgba(148, 163, 184, 0.3)';
+        return ['rgba(80, 80, 90, 0.4)', 'rgba(60, 60, 70, 0.3)'];
       case 'invalid':
-        return '#EF4444';
+        return ['rgba(255, 80, 80, 0.9)', 'rgba(255, 100, 100, 0.6)'];
       default:
-        return 'rgba(148, 163, 184, 0.5)';
+        if (value >= 9) {
+          return ['rgba(255, 215, 0, 0.8)', 'rgba(255, 140, 0, 0.6)'];
+        } else if (value >= 7) {
+          return ['rgba(138, 43, 226, 0.7)', 'rgba(148, 0, 211, 0.5)'];
+        } else if (value >= 5) {
+          return ['rgba(0, 191, 255, 0.7)', 'rgba(65, 105, 225, 0.5)'];
+        } else if (value >= 3) {
+          return ['rgba(50, 205, 50, 0.7)', 'rgba(0, 128, 0, 0.5)'];
+        } else {
+          return ['rgba(160, 160, 170, 0.6)', 'rgba(140, 140, 150, 0.4)'];
+        }
     }
   };
 
-  // Different glow colors based on number value - just for visual variety
+  // Enhanced glow colors based on value and state
   const getGlowColor = () => {
     const value = cell.value;
-    if (value <= 3) return '#10B981';
-    if (value <= 6) return '#F59E0B';
-    return '#EF4444';
+    if (state === 'selected') return '#00FFB3';
+    if (state === 'invalid') return '#FF5555';
+
+    if (value >= 9) return '#FFD700';
+    if (value >= 7) return '#8A2BE2';
+    if (value >= 5) return '#00BFFF';
+    if (value >= 3) return '#32CD32';
+    return '#AAAAAA';
   };
+
+  // Shimmer gradient function removed
 
   if (cell.value === 0) {
     return (
-      <View style={[styles.cell, styles.emptyCell]} />
+      <View style={[styles.cell, styles.emptyCell]}>
+        <View style={styles.emptyIndicator} />
+      </View>
     );
   }
 
   return (
     <TouchableOpacity
-      activeOpacity={0.8}
+      activeOpacity={0.9}
       onPress={handlePress}
       disabled={state === 'dulled'}
     >
       <Animated.View
         style={[
-          styles.cell,
+          styles.cellContainer,
           {
-            backgroundColor: getBackgroundColor(),
-            borderColor: getBorderColor(),
-            borderWidth: state === 'selected' ? 3 : 1,
-            opacity: state === 'dulled' ? 0.5 : 1,
-            shadowColor: state === 'selected' ? getGlowColor() : 'transparent',
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: state === 'selected' ? 0.6 : 0,
-            shadowRadius: state === 'selected' ? 8 : 0,
-            elevation: state === 'selected' ? 8 : 4,
             transform: [
               { scale: scaleAnim },
+              { scale: pulseAnim }
             ]
           }
         ]}
       >
-        <Text style={[
-          styles.cellText,
-          state === 'dulled' && styles.dulledText,
-          {
-            color: state === 'dulled' ? '#64748B' : '#FFFFFF',
-          }
-        ]}>
-          {cell.value}
-        </Text>
+        {/* Enhanced outer glow ring */}
+        <Animated.View
+          style={[
+            styles.glowRing,
+            {
+              shadowColor: getGlowColor(),
+              shadowOpacity: hoverGlowAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.3, 0.8]
+              }),
+              shadowRadius: hoverGlowAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [4, 12]
+              }),
+            }
+          ]}
+        />
+
+        {/* Premium glassmorphism background */}
+        <LinearGradient
+          colors={getGradientColors()}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[
+            styles.cell,
+            {
+              opacity: state === 'dulled' ? 0.4 : 0.95,
+              borderColor: getBorderColors()[0],
+              borderWidth: state === 'selected' ? 2 : 1,
+            }
+          ]}
+        >
+          {/* Inner glass reflection */}
+          <View style={styles.glassReflection} />
+
+          {/* Shimmer overlay removed to prevent line artifacts */}
+
+          {/* Enhanced cell content */}
+          <View style={styles.contentContainer}>
+            <Text style={[
+              styles.cellText,
+              state === 'dulled' && styles.dulledText,
+              {
+                color: state === 'dulled' ? '#666666' :
+                       state === 'selected' ? '#FFFFFF' : '#FFFFFF',
+                textShadowColor: state === 'selected' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.6)',
+                textShadowOffset: { width: 0, height: 1 },
+                textShadowRadius: 3,
+                fontSize: getCellSize() * (cell.value >= 10 ? 0.4 : 0.5),
+                fontWeight: cell.value >= 7 ? '900' : '800',
+              }
+            ]}>
+              {cell.value}
+            </Text>
+
+            {/* Value indicator dots for high numbers */}
+            {cell.value >= 9 && (
+              <View style={styles.valueDots}>
+                {Array.from({ length: Math.min(cell.value - 8, 3) }).map((_, i) => (
+                  <View key={i} style={styles.valueDot} />
+                ))}
+              </View>
+            )}
+          </View>
+        </LinearGradient>
       </Animated.View>
     </TouchableOpacity>
   );
@@ -125,36 +287,100 @@ const getCellSize = () => {
 };
 
 const styles = StyleSheet.create({
+  cellContainer: {
+    margin: screenWidth * 0.01,
+    position: 'relative',
+  },
+  glowRing: {
+    position: 'absolute',
+    width: getCellSize() + 8,
+    height: getCellSize() + 8,
+    borderRadius: (getCellSize() + 8) * 0.25,
+    top: -4,
+    left: -4,
+    backgroundColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 8,
+  },
   cell: {
     width: getCellSize(),
     height: getCellSize(),
-    borderRadius: getCellSize() * 0.24,
-    backgroundColor: 'rgba(100, 116, 139, 0.8)',
+    borderRadius: getCellSize() * 0.25,
     justifyContent: 'center',
     alignItems: 'center',
-    margin: screenWidth * 0.01,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    shadowColor: 'rgba(0, 0, 0, 0.3)',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4,
+    shadowRadius: 8,
+    elevation: 12,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  glassReflection: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '40%',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderTopLeftRadius: getCellSize() * 0.25,
+    borderTopRightRadius: getCellSize() * 0.25,
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+    zIndex: 2,
+  },
+  valueDots: {
+    position: 'absolute',
+    bottom: 2,
+    flexDirection: 'row',
+    gap: 2,
+  },
+  valueDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
   },
   emptyCell: {
     backgroundColor: 'transparent',
     shadowOpacity: 0,
     elevation: 0,
     borderWidth: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyIndicator: {
+    width: getCellSize() * 0.2,
+    height: getCellSize() * 0.2,
+    borderRadius: getCellSize() * 0.1,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    shadowColor: 'rgba(255, 255, 255, 0.3)',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
   },
   cellText: {
-    fontSize: getCellSize() * 0.44,
+    fontSize: getCellSize() * 0.5,
     fontWeight: '800',
     color: '#FFFFFF',
     textAlign: 'center',
+    letterSpacing: 0.5,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   dulledText: {
-    color: '#64748B',
+    color: '#666666',
+    fontWeight: '500',
+    opacity: 0.6,
   },
 });
