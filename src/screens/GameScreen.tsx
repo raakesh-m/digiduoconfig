@@ -8,6 +8,7 @@ import {
   AppState,
   Dimensions,
   Animated,
+  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -28,23 +29,19 @@ import {
 } from '../logic/game';
 
 export const GameScreen: React.FC = () => {
-  // Core game state
   const [currentLevel, setCurrentLevel] = useState(1);
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [selectedCells, setSelectedCells] = useState<GridCell[]>([]);
   const [invalidCells, setInvalidCells] = useState<GridCell[]>([]);
 
-  // Score and progression tracking
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [lastMatchTime, setLastMatchTime] = useState<number | null>(null);
 
-  // Timer and lifecycle refs
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const appStateRef = useRef(AppState.currentState);
   const invalidFlashTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // UI animation values
   const headerSlideAnim = useRef(new Animated.Value(-100)).current;
   const footerSlideAnim = useRef(new Animated.Value(100)).current;
   const scorePopAnim = useRef(new Animated.Value(1)).current;
@@ -57,13 +54,11 @@ export const GameScreen: React.FC = () => {
   const statCardPulseAnim = useRef(new Animated.Value(1)).current;
 
   const initializeGame = (levelId: number) => {
-    // Clean up any existing timeouts
     if (invalidFlashTimeoutRef.current) {
       clearTimeout(invalidFlashTimeoutRef.current);
       invalidFlashTimeoutRef.current = null;
     }
 
-    // Set up new game state
     const config = getLevelConfig(levelId);
     const gameGrid = generateGrid(config);
 
@@ -82,75 +77,88 @@ export const GameScreen: React.FC = () => {
     setInvalidCells([]);
     setCurrentLevel(levelId);
 
-    // Smooth entrance animations for the UI
     Animated.sequence([
-      // Grid appears first
       Animated.timing(gridFadeAnim, {
         toValue: 1,
         duration: 600,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
-      // Then UI elements slide in
       Animated.parallel([
         Animated.spring(headerSlideAnim, {
           toValue: 0,
           friction: 8,
           tension: 120,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.spring(footerSlideAnim, {
           toValue: 0,
           friction: 8,
           tension: 120,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.spring(levelTransitionAnim, {
           toValue: 1,
           friction: 6,
           tension: 140,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
       ])
     ]).start();
 
-    // Start subtle background animations
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(statCardPulseAnim, {
-          toValue: 1.01,
-          duration: 3000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(statCardPulseAnim, {
-          toValue: 1,
-          duration: 3000,
-          useNativeDriver: true,
-        })
-      ])
-    ).start();
+    if (Platform.OS === 'web') {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(statCardPulseAnim, {
+            toValue: 1.01,
+            duration: 3000,
+            useNativeDriver: false,
+          }),
+          Animated.timing(statCardPulseAnim, {
+            toValue: 1,
+            duration: 3000,
+            useNativeDriver: false,
+          })
+        ])
+      ).start();
 
-    Animated.loop(
-      Animated.timing(buttonShimmerAnim, {
-        toValue: 1,
-        duration: 3500,
-        useNativeDriver: false,
-      })
-    ).start();
-
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(buttonPulseAnim, {
-          toValue: 1.02,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(buttonPulseAnim, {
+      Animated.loop(
+        Animated.timing(buttonShimmerAnim, {
           toValue: 1,
-          duration: 1500,
-          useNativeDriver: true,
+          duration: 3500,
+          useNativeDriver: false,
         })
-      ])
-    ).start();
+      ).start();
+
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(buttonPulseAnim, {
+            toValue: 1.02,
+            duration: 1500,
+            useNativeDriver: false,
+          }),
+          Animated.timing(buttonPulseAnim, {
+            toValue: 1,
+            duration: 1500,
+            useNativeDriver: false,
+          })
+        ])
+      ).start();
+    } else {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(buttonPulseAnim, {
+            toValue: 1.005,
+            duration: 4000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(buttonPulseAnim, {
+            toValue: 1,
+            duration: 4000,
+            useNativeDriver: true,
+          })
+        ])
+      ).start();
+    }
   };
 
   const startTimer = () => {
@@ -193,7 +201,6 @@ export const GameScreen: React.FC = () => {
 
     const handleAppStateChange = (nextAppState: any) => {
       if (appStateRef.current.match(/inactive|background/) && nextAppState === 'active') {
-        // App came to foreground - use a ref or check current state
         setGameState(currentState => {
           if (currentState && !currentState.isGameOver) {
             startTimer();
@@ -201,7 +208,6 @@ export const GameScreen: React.FC = () => {
           return currentState;
         });
       } else if (nextAppState.match(/inactive|background/)) {
-        // App went to background
         stopTimer();
       }
       appStateRef.current = nextAppState;
@@ -245,21 +251,16 @@ export const GameScreen: React.FC = () => {
   const handleCellPress = (cell: GridCell) => {
     if (!gameState || gameState.isGameOver || cell.isDulled) return;
 
-    // Limit selection to two cells max
     if (selectedCells.length >= 2) return;
-
-    // Prevent selecting the same cell twice
     if (selectedCells.some(c => c.id === cell.id)) return;
 
     const newSelection = [...selectedCells, cell];
     setSelectedCells(newSelection);
 
-    // Check for match when two cells are selected
     if (newSelection.length === 2) {
       const [first, second] = newSelection;
 
       if (isValidPair(first.value, second.value)) {
-        // Calculate score with streak bonus
         const currentTime = Date.now();
         const timeSinceLastMatch = lastMatchTime ? currentTime - lastMatchTime : null;
         const isQuickMatch = timeSinceLastMatch && timeSinceLastMatch < 3000;
@@ -273,21 +274,20 @@ export const GameScreen: React.FC = () => {
         setScore(prev => prev + scoreToAdd);
         setLastMatchTime(currentTime);
 
-        // Visual feedback for successful match
         Animated.sequence([
           Animated.timing(scorePopAnim, {
             toValue: 1.3,
             duration: 150,
-            useNativeDriver: true,
+            useNativeDriver: Platform.OS !== 'web',
           }),
           Animated.timing(scorePopAnim, {
             toValue: 1,
             duration: 200,
-            useNativeDriver: true,
+            useNativeDriver: Platform.OS !== 'web',
           }),
         ]).start();
 
-        if (newStreak > 1) {
+        if (newStreak > 1 && Platform.OS === 'web') {
           Animated.loop(
             Animated.sequence([
               Animated.timing(streakGlowAnim, {
@@ -319,12 +319,10 @@ export const GameScreen: React.FC = () => {
         setSelectedCells([]);
         setInvalidCells([]);
       } else {
-        // Invalid match - reset streak and show feedback
         setStreak(0);
         setInvalidCells(newSelection);
         setSelectedCells([]);
 
-        // Clear invalid state after brief flash
         if (invalidFlashTimeoutRef.current) {
           clearTimeout(invalidFlashTimeoutRef.current);
         }
@@ -341,7 +339,6 @@ export const GameScreen: React.FC = () => {
       return;
     }
 
-    // Button press animation
     Animated.sequence([
       Animated.timing(buttonGlowAnim, {
         toValue: 1,
@@ -372,17 +369,16 @@ export const GameScreen: React.FC = () => {
 
   const handleNextLevel = () => {
     if (currentLevel < 3) {
-      // Level transition animation
       Animated.sequence([
         Animated.timing(levelTransitionAnim, {
           toValue: 0,
           duration: 200,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(levelTransitionAnim, {
           toValue: 1,
           duration: 300,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
       ]).start();
 
@@ -406,7 +402,6 @@ export const GameScreen: React.FC = () => {
       <SparklesBackground />
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      {/* Enhanced Glassmorphism Header */}
       <Animated.View
         style={[
           styles.headerContainer,
@@ -425,11 +420,9 @@ export const GameScreen: React.FC = () => {
           end={{ x: 1, y: 1 }}
           style={styles.header}
         >
-          {/* Glassmorphism overlay */}
           <View style={styles.glassOverlay} />
 
           <View style={styles.headerContent}>
-            {/* Level Title Row */}
             <View style={styles.titleRow}>
               <Animated.View style={{ transform: [{ scale: levelTransitionAnim }] }}>
                 <Text style={[styles.levelText, { fontSize: screenWidth * 0.08 }]}>
@@ -445,14 +438,13 @@ export const GameScreen: React.FC = () => {
               </View>
             </View>
 
-            {/* Stats Row */}
             <View style={styles.statsRow}>
               <Animated.View
                 style={[
                   styles.statCard,
-                  {
+                  Platform.OS === 'web' ? {
                     transform: [{ scale: statCardPulseAnim }]
-                  }
+                  } : {}
                 ]}
               >
                 <Text style={styles.statLabel}>Score</Text>
@@ -472,9 +464,9 @@ export const GameScreen: React.FC = () => {
               <Animated.View
                 style={[
                   styles.statCard,
-                  {
+                  Platform.OS === 'web' ? {
                     transform: [{ scale: statCardPulseAnim }]
-                  }
+                  } : {}
                 ]}
               >
                 <Text style={styles.statLabel}>Streak</Text>
@@ -482,9 +474,7 @@ export const GameScreen: React.FC = () => {
                   style={[
                     styles.streakContainer,
                     {
-                      shadowOpacity: streakGlowAnim,
-                      shadowColor: '#FFD600',
-                      shadowRadius: 8,
+                      boxShadow: '0px 0px 8px rgba(255, 214, 0, 0.7)',
                     }
                   ]}
                 >
@@ -497,9 +487,9 @@ export const GameScreen: React.FC = () => {
               <Animated.View
                 style={[
                   styles.statCard,
-                  {
+                  Platform.OS === 'web' ? {
                     transform: [{ scale: statCardPulseAnim }]
-                  }
+                  } : {}
                 ]}
               >
                 <Text style={styles.statLabel}>Pairs</Text>
@@ -511,9 +501,9 @@ export const GameScreen: React.FC = () => {
               <Animated.View
                 style={[
                   styles.statCard,
-                  {
+                  Platform.OS === 'web' ? {
                     transform: [{ scale: statCardPulseAnim }]
-                  }
+                  } : {}
                 ]}
               >
                 <Text style={styles.statLabel}>Rows</Text>
@@ -526,7 +516,6 @@ export const GameScreen: React.FC = () => {
         </LinearGradient>
       </Animated.View>
 
-      {/* Game Grid with fade animation */}
       <Animated.View
         style={[
           styles.gridContainer,
@@ -549,7 +538,6 @@ export const GameScreen: React.FC = () => {
         />
       </Animated.View>
 
-      {/* Enhanced Glassmorphism Footer */}
       <Animated.View
         style={[
           styles.footerContainer,
@@ -559,7 +547,6 @@ export const GameScreen: React.FC = () => {
         ]}
       >
         <View style={[styles.footer, { backgroundColor: 'rgba(40, 40, 40, 0.9)' }]}>
-          {/* Glassmorphism overlay */}
           <View style={styles.glassOverlay} />
 
           <View style={styles.buttonContainer}>
@@ -572,23 +559,16 @@ export const GameScreen: React.FC = () => {
               disabled={addRowsRemaining === 0}
               activeOpacity={0.85}
             >
-              {/* Enhanced outer glow ring */}
               <Animated.View
                 style={[
                   styles.buttonGlowRing,
                   {
                     opacity: buttonGlowAnim,
-                    shadowColor: addRowsRemaining > 0 ? '#00FFB3' : 'transparent',
-                    shadowOpacity: addRowsRemaining > 0 ? 0.8 : 0,
-                    shadowRadius: buttonGlowAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [8, 20]
-                    }),
+                    boxShadow: addRowsRemaining > 0 ? '0px 0px 20px rgba(0, 255, 179, 0.8)' : 'none',
                   }
                 ]}
               />
 
-              {/* Premium button background with glassmorphism */}
               <LinearGradient
                 colors={addRowsRemaining > 0 ? [
                   'rgba(0, 255, 179, 0.15)',   // Cyan glow
@@ -610,26 +590,25 @@ export const GameScreen: React.FC = () => {
                   }
                 ]}
               >
-                {/* Glass reflection overlay */}
                 <View style={styles.buttonGlassOverlay} />
 
-                {/* Animated shimmer effect */}
-                <Animated.View
-                  style={[
-                    styles.buttonShimmer,
-                    {
-                      opacity: addRowsRemaining > 0 ? 0.3 : 0,
-                      transform: [{
-                        translateX: buttonShimmerAnim.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [-screenWidth, screenWidth]
-                        })
-                      }]
-                    }
-                  ]}
-                />
+                {Platform.OS === 'web' && (
+                  <Animated.View
+                    style={[
+                      styles.buttonShimmer,
+                      {
+                        opacity: addRowsRemaining > 0 ? 0.3 : 0,
+                        transform: [{
+                          translateX: buttonShimmerAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [-screenWidth, screenWidth]
+                          })
+                        }]
+                      }
+                    ]}
+                  />
+                )}
 
-                {/* Enhanced button content */}
                 <Animated.View
                   style={[
                     styles.buttonContent,
@@ -638,7 +617,6 @@ export const GameScreen: React.FC = () => {
                     }
                   ]}
                 >
-                  {/* Icon container with glow */}
                   <View style={styles.iconContainer}>
                     <Animated.View
                       style={[
@@ -659,7 +637,6 @@ export const GameScreen: React.FC = () => {
                     ]}>⚡</Text>
                   </View>
 
-                  {/* Text content */}
                   <View style={styles.textContainer}>
                     <Text style={[
                       styles.addRowText,
@@ -680,7 +657,6 @@ export const GameScreen: React.FC = () => {
                         {addRowsRemaining > 0 ? `${addRowsRemaining} remaining` : 'No charges left'}
                       </Text>
 
-                      {/* Charge indicator dots */}
                       <View style={styles.chargeIndicator}>
                         {Array.from({ length: 3 }).map((_, i) => (
                           <Animated.View
@@ -689,7 +665,7 @@ export const GameScreen: React.FC = () => {
                               styles.chargeDot,
                               {
                                 backgroundColor: i < addRowsRemaining ? '#00FFB3' : 'rgba(255, 255, 255, 0.2)',
-                                shadowOpacity: i < addRowsRemaining ? 1 : 0,
+                                boxShadow: i < addRowsRemaining ? '0px 0px 6px rgba(0, 255, 179, 1)' : 'none',
                                 transform: [{
                                   scale: i < addRowsRemaining ? buttonPulseAnim : 1
                                 }]
@@ -707,7 +683,6 @@ export const GameScreen: React.FC = () => {
         </View>
       </Animated.View>
 
-      {/* Game Over Overlay */}
       <GameOverlay
         visible={gameState.isGameOver}
         isWon={gameState.isWon}
@@ -723,6 +698,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'transparent',
+    overflow: 'hidden',
   },
   loadingText: {
     color: '#FFFFFF',
@@ -741,10 +717,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(15, 23, 42, 0.8)',
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)',
     elevation: 8,
   },
   glassOverlay: {
@@ -782,10 +755,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.15)',
     minWidth: screenWidth * 0.18,
-    shadowColor: 'rgba(0, 255, 179, 0.3)',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    boxShadow: '0px 4px 8px rgba(0, 255, 179, 0.06)',
     elevation: 6,
     position: 'relative',
     overflow: 'hidden',
@@ -796,9 +766,7 @@ const styles = StyleSheet.create({
   levelText: {
     fontWeight: '900',
     color: '#FFFFFF',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    textShadow: '0px 2px 4px rgba(0, 0, 0, 0.5)',
     letterSpacing: 1.2,
   },
   statLabel: {
@@ -839,10 +807,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
+    boxShadow: '0px -8px 16px rgba(0, 0, 0, 0.4)',
     elevation: 12,
     position: 'relative',
     overflow: 'hidden',
@@ -866,7 +831,6 @@ const styles = StyleSheet.create({
     bottom: -4,
     borderRadius: 24,
     backgroundColor: 'transparent',
-    shadowOffset: { width: 0, height: 0 },
     elevation: 12,
   },
   buttonGradient: {
@@ -875,10 +839,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     position: 'relative',
     overflow: 'hidden',
-    shadowColor: 'rgba(0, 0, 0, 0.3)',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.09)',
     elevation: 8,
   },
   buttonGlassOverlay: {
@@ -916,9 +877,7 @@ const styles = StyleSheet.create({
   },
   buttonIcon: {
     fontSize: screenWidth * 0.055,
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    textShadow: '0px 2px 4px rgba(0, 0, 0, 0.8)',
     color: '#FFFFFF',
     position: 'relative',
     zIndex: 2,
@@ -929,10 +888,7 @@ const styles = StyleSheet.create({
     height: screenWidth * 0.08,
     borderRadius: screenWidth * 0.04,
     backgroundColor: 'rgba(0, 255, 179, 0.2)',
-    shadowColor: '#00FFB3',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 8,
+    boxShadow: '0px 0px 8px rgba(0, 255, 179, 0.8)',
   },
   textContainer: {
     alignItems: 'center',
@@ -943,9 +899,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#FFFFFF',
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.7)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
+    textShadow: '0px 1px 3px rgba(0, 0, 0, 0.7)',
     letterSpacing: 0.8,
   },
   subtextContainer: {
@@ -957,9 +911,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: 'rgba(255, 255, 255, 0.85)',
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.6)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    textShadow: '0px 1px 2px rgba(0, 0, 0, 0.6)',
     letterSpacing: 0.3,
     marginBottom: 4,
   },
@@ -972,15 +924,12 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: '#00FFB3',
-    shadowColor: '#00FFB3',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 6,
+    boxShadow: '0px 0px 6px rgba(0, 255, 179, 1)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   disabledButton: {
-    shadowColor: 'transparent',
+    boxShadow: 'none',
   },
   disabledText: {
     color: '#888888',

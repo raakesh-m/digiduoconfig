@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Animated, Dimensions, Platform } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -14,10 +14,9 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 export const CircularTimer: React.FC<Props> = ({ timeRemaining, totalTime }) => {
   const animatedValue = useRef(new Animated.Value(0)).current;
 
-  // Responsive sizing
-  const timerSize = Math.min(screenWidth * 0.2, 80); // 20% of screen width, max 80px
-  const radius = timerSize * 0.375; // 37.5% of timer size
-  const strokeWidth = Math.max(timerSize * 0.075, 4); // 7.5% of timer size, min 4px
+  const timerSize = Math.min(screenWidth * 0.2, 80);
+  const radius = timerSize * 0.375;
+  const strokeWidth = Math.max(timerSize * 0.075, 4);
   const circumference = 2 * Math.PI * radius;
 
   useEffect(() => {
@@ -26,7 +25,7 @@ export const CircularTimer: React.FC<Props> = ({ timeRemaining, totalTime }) => 
     Animated.timing(animatedValue, {
       toValue: progress,
       duration: 300,
-      useNativeDriver: false,
+      useNativeDriver: Platform.OS !== 'web',
     }).start();
 
     return () => {
@@ -52,7 +51,6 @@ export const CircularTimer: React.FC<Props> = ({ timeRemaining, totalTime }) => 
   return (
     <View style={[styles.container, { width: timerSize, height: timerSize }]}>
       <Svg width={timerSize} height={timerSize} style={styles.svg}>
-        {/* Background circle */}
         <Circle
           cx={center}
           cy={center}
@@ -62,7 +60,6 @@ export const CircularTimer: React.FC<Props> = ({ timeRemaining, totalTime }) => 
           fill="transparent"
         />
 
-        {/* Progress circle */}
         <AnimatedCircle
           cx={center}
           cy={center}
@@ -83,7 +80,7 @@ export const CircularTimer: React.FC<Props> = ({ timeRemaining, totalTime }) => 
       <View style={styles.timeContainer}>
         <Text style={[styles.timeText, {
           color: getTimerColor(),
-          fontSize: timerSize * 0.175 // 17.5% of timer size
+          fontSize: timerSize * 0.175
         }]}>
           {formatTime(timeRemaining)}
         </Text>

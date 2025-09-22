@@ -18,7 +18,6 @@ export const Grid: React.FC<Props> = ({
   invalidCells,
   onCellPress
 }) => {
-  // Figure out what visual state each cell should be in
   const getCellState = (cell: GridCellType): CellState => {
     if (cell.isDulled) return 'dulled';
     if (invalidCells.some(c => c.id === cell.id)) return 'invalid';
@@ -66,6 +65,6 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'center',
-    flexWrap: 'wrap', // just in case we need to wrap on tiny screens
+    flexWrap: 'wrap',
   },
 });

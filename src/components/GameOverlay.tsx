@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, Animated, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Animated, Dimensions, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -28,34 +28,32 @@ export const GameOverlay: React.FC<Props> = ({
 
   useEffect(() => {
     if (visible) {
-      // Smooth entrance animation for the modal
       Animated.parallel([
         Animated.spring(scaleAnim, {
           toValue: 1,
           friction: 6,
           tension: 120,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 300,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
       ]).start();
 
-      // Special celebration effects for winning
       if (isWon) {
         Animated.loop(
           Animated.sequence([
             Animated.timing(sparkleAnim, {
               toValue: 1,
               duration: 800,
-              useNativeDriver: true,
+              useNativeDriver: Platform.OS !== 'web',
             }),
             Animated.timing(sparkleAnim, {
               toValue: 0,
               duration: 800,
-              useNativeDriver: true,
+              useNativeDriver: Platform.OS !== 'web',
             }),
           ])
         ).start();
@@ -65,18 +63,17 @@ export const GameOverlay: React.FC<Props> = ({
             Animated.timing(pulseAnim, {
               toValue: 1.05,
               duration: 1000,
-              useNativeDriver: true,
+              useNativeDriver: Platform.OS !== 'web',
             }),
             Animated.timing(pulseAnim, {
               toValue: 1,
               duration: 1000,
-              useNativeDriver: true,
+              useNativeDriver: Platform.OS !== 'web',
             }),
           ])
         ).start();
       }
     } else {
-      // Reset all animation values when hidden
       scaleAnim.setValue(0);
       fadeAnim.setValue(0);
       sparkleAnim.setValue(0);
@@ -90,7 +87,6 @@ export const GameOverlay: React.FC<Props> = ({
       animationType="none"
     >
       <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
-        {/* Victory confetti particles */}
         {isWon && (
           <>
             {Array.from({ length: 20 }).map((_, i) => (
@@ -143,7 +139,6 @@ export const GameOverlay: React.FC<Props> = ({
             end={{ x: 1, y: 1 }}
             style={styles.modal}
           >
-            {/* Glass effect overlay */}
             <View style={styles.glassOverlay} />
 
             <View style={styles.content}>
@@ -239,10 +234,7 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: '#F59E0B',
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
+    boxShadow: '0px 0px 8px rgba(245, 158, 11, 1)',
   },
   modalContainer: {
     alignItems: 'center',
@@ -252,10 +244,7 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     minWidth: screenWidth * 0.85,
     maxWidth: screenWidth * 0.9,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.5,
-    shadowRadius: 24,
+    boxShadow: '0px 12px 24px rgba(0, 0, 0, 0.5)',
     elevation: 20,
     position: 'relative',
     overflow: 'hidden',
@@ -283,9 +272,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginBottom: 16,
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    textShadow: '0px 2px 4px rgba(0, 0, 0, 0.5)',
     letterSpacing: 1,
   },
   subtitle: {
@@ -302,10 +289,7 @@ const styles = StyleSheet.create({
   },
   button: {
     borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
+    boxShadow: '0px 6px 12px rgba(0, 0, 0, 0.3)',
     elevation: 8,
     overflow: 'hidden',
   },
@@ -321,9 +305,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     color: '#FFFFFF',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    textShadow: '0px 1px 2px rgba(0, 0, 0, 0.5)',
     letterSpacing: 0.5,
   },
 });

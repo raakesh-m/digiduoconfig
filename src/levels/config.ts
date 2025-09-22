@@ -1,6 +1,5 @@
 import { LevelConfig } from '../types';
 
-// Game gets progressively harder - bigger grids, fewer add-row helps
 export const LEVELS: LevelConfig[] = [
   {
     id: 1,
@@ -29,7 +28,7 @@ export const LEVELS: LevelConfig[] = [
     gridCols: 10,
     startFilledRows: 4,
     numberRange: [1, 9],
-    addRowLimit: 2, // fewer helps on harder level
+    addRowLimit: 2,
     timeLimit: 120,
   },
 ];

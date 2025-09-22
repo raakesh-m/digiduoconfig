@@ -18,67 +18,6 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const shimmerAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    if (state === 'selected') {
-      // Enhanced selection animation with glow
-      Animated.parallel([
-        Animated.spring(scaleAnim, {
-          toValue: 1.15,
-          friction: 6,
-          tension: 180,
-          useNativeDriver: Platform.OS !== 'web',
-        }),
-        Animated.timing(glowAnim, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: false,
-        }),
-        Animated.timing(hoverGlowAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: false,
-        })
-      ]).start();
-    } else {
-      // Return to normal with smooth transitions
-      Animated.parallel([
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          friction: 8,
-          tension: 150,
-          useNativeDriver: Platform.OS !== 'web',
-        }),
-        Animated.timing(glowAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: false,
-        }),
-        Animated.timing(hoverGlowAnim, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: false,
-        })
-      ]).start();
-    }
-
-    // Gentle breathing animation for inactive cells
-    if (state === 'normal') {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 1.02,
-            duration: 2000,
-            useNativeDriver: Platform.OS !== 'web',
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 2000,
-            useNativeDriver: Platform.OS !== 'web',
-          })
-        ])
-      ).start();
-    }
-  }, [state, scaleAnim, glowAnim, hoverGlowAnim, pulseAnim, cell.value]);
 
   const handlePress = () => {
     if (state === 'dulled') return;
@@ -108,7 +47,6 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
           'rgba(200, 0, 0, 0.9)'
         ];
       default:
-        // Dynamic colors based on cell value for premium look
         if (value >= 9) {
           return [
             'rgba(255, 215, 0, 0.9)',    // Gold
@@ -168,7 +106,6 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
     }
   };
 
-  // Enhanced glow colors based on value and state
   const getGlowColor = () => {
     const value = cell.value;
     if (state === 'selected') return '#00FFB3';
@@ -195,36 +132,8 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
       onPress={handlePress}
       disabled={state === 'dulled'}
     >
-      <Animated.View
-        style={[
-          styles.cellContainer,
-          {
-            transform: [
-              { scale: scaleAnim },
-              { scale: pulseAnim }
-            ]
-          }
-        ]}
-      >
-        {/* Glow effect for selected cells */}
-        <Animated.View
-          style={[
-            styles.glowRing,
-            {
-              shadowColor: getGlowColor(),
-              shadowOpacity: hoverGlowAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0.3, 0.8]
-              }),
-              shadowRadius: hoverGlowAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [4, 12]
-              }),
-            }
-          ]}
-        />
+      <View style={styles.cellContainer}>
 
-        {/* Cell background with gradient based on value */}
         <LinearGradient
           colors={getGradientColors() as [string, string, ...string[]]}
           start={{ x: 0, y: 0 }}
@@ -238,10 +147,8 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
             }
           ]}
         >
-          {/* Glass reflection effect */}
           <View style={styles.glassReflection} />
 
-          {/* Cell number and visual indicators */}
           <View style={styles.contentContainer}>
             <Text style={[
               styles.cellText,
@@ -249,9 +156,7 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
               {
                 color: state === 'dulled' ? '#666666' :
                        state === 'selected' ? '#FFFFFF' : '#FFFFFF',
-                textShadowColor: state === 'selected' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.6)',
-                textShadowOffset: { width: 0, height: 1 },
-                textShadowRadius: 3,
+                textShadow: state === 'selected' ? '0px 1px 3px rgba(0, 0, 0, 0.8)' : '0px 1px 3px rgba(0, 0, 0, 0.6)',
                 fontSize: getCellSize() * (cell.value >= 10 ? 0.4 : 0.5),
                 fontWeight: cell.value >= 7 ? '900' : '800',
               }
@@ -259,7 +164,6 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
               {cell.value}
             </Text>
 
-            {/* Special indicator dots for high-value cells */}
             {cell.value >= 9 && (
               <View style={styles.valueDots}>
                 {Array.from({ length: Math.min(cell.value - 8, 3) }).map((_, i) => (
@@ -269,13 +173,12 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
             )}
           </View>
         </LinearGradient>
-      </Animated.View>
+      </View>
     </TouchableOpacity>
   );
 };
 
 const getCellSize = () => {
-  // Calculate responsive cell size based on screen width
   const baseSize = Math.min(screenWidth / 12, 45);
   return Math.max(baseSize, 35);
 };
@@ -293,7 +196,6 @@ const styles = StyleSheet.create({
     top: -4,
     left: -4,
     backgroundColor: 'transparent',
-    shadowOffset: { width: 0, height: 0 },
     elevation: 8,
   },
   cell: {
@@ -302,10 +204,7 @@ const styles = StyleSheet.create({
     borderRadius: getCellSize() * 0.25,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: 'rgba(0, 0, 0, 0.3)',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.09)',
     elevation: 12,
     position: 'relative',
     overflow: 'hidden',
@@ -338,10 +237,7 @@ const styles = StyleSheet.create({
     height: 3,
     borderRadius: 1.5,
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
+    boxShadow: '0px 0px 2px rgba(255, 255, 255, 0.8)',
   },
   emptyCell: {
     backgroundColor: 'transparent',
@@ -358,10 +254,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.15)',
-    shadowColor: 'rgba(255, 255, 255, 0.3)',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 4,
+    boxShadow: '0px 0px 4px rgba(255, 255, 255, 0.15)',
   },
   cellText: {
     fontSize: getCellSize() * 0.5,

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, Dimensions } from 'react-native';
+import { View, StyleSheet, Animated, Dimensions, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
@@ -33,15 +33,17 @@ export const AnimatedBackground: React.FC = () => {
   const energyPulse = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Set up the particle system on first render
     if (particles.current.length === 0) {
       const colors = ['#FF007A', '#00FFB3', '#8C1BFF', '#FF6F61', '#00BFFF', '#FFD600'];
       const types: ('glow' | 'spark' | 'energy')[] = ['glow', 'spark', 'energy'];
 
-      particles.current = Array.from({ length: 35 }, (_, i) => ({
+      const particleCount = Platform.OS === 'web' ? 35 : 8;
+      const energyFlowCount = Platform.OS === 'web' ? 8 : 0;
+
+      particles.current = Array.from({ length: particleCount }, (_, i) => ({
         id: i,
-        x: new Animated.Value(Math.random() * width),
-        y: new Animated.Value(Math.random() * height),
+        x: new Animated.Value(Math.random() * (width - 40) + 20),
+        y: new Animated.Value(Math.random() * (height - 40) + 20),
         opacity: new Animated.Value(Math.random() * 0.7 + 0.2),
         scale: new Animated.Value(Math.random() * 0.8 + 0.4),
         rotation: new Animated.Value(0),
@@ -49,165 +51,200 @@ export const AnimatedBackground: React.FC = () => {
         type: types[Math.floor(Math.random() * types.length)],
       }));
 
-      // Create energy flow effects for added visual depth
-      energyFlows.current = Array.from({ length: 8 }, (_, i) => ({
-        id: i,
-        x: new Animated.Value(Math.random() * width),
-        y: new Animated.Value(Math.random() * height),
-        opacity: new Animated.Value(0.4),
-        progress: new Animated.Value(0),
-      }));
+      if (Platform.OS === 'web') {
+        energyFlows.current = Array.from({ length: energyFlowCount }, (_, i) => ({
+          id: i,
+          x: new Animated.Value(Math.random() * (width - 80) + 40),
+          y: new Animated.Value(Math.random() * (height - 80) + 40),
+          opacity: new Animated.Value(0.4),
+          progress: new Animated.Value(0),
+        }));
+      }
     }
 
-    // Main animation controller
-    const startAnimations = () => {
-      if (isAnimatingRef.current) return;
-      isAnimatingRef.current = true;
+    if (Platform.OS === 'web') {
+      const startAnimations = () => {
+        if (isAnimatingRef.current) return;
+        isAnimatingRef.current = true;
 
-      const animateParticles = () => {
-        if (!isAnimatingRef.current) return;
+        const animateParticles = () => {
+          if (!isAnimatingRef.current) return;
 
-        // Clean up any previous animations
-        animationsRef.current.forEach(animation => animation.stop());
-        animationsRef.current = [];
+          animationsRef.current.forEach(animation => animation.stop());
+          animationsRef.current = [];
 
-        particles.current.forEach((particle) => {
-          const baseDuration = particle.type === 'energy' ? 6000 : 10000;
-          const animations = [
-            Animated.timing(particle.x, {
-              toValue: Math.random() * width,
-              duration: baseDuration + Math.random() * 4000,
-              useNativeDriver: false,
-            }),
-            Animated.timing(particle.y, {
-              toValue: Math.random() * height,
-              duration: baseDuration + Math.random() * 4000,
-              useNativeDriver: false,
-            }),
-            Animated.loop(
-              Animated.sequence([
-                Animated.timing(particle.opacity, {
-                  toValue: particle.type === 'glow' ? 0.8 : 0.6,
-                  duration: 2000 + Math.random() * 1000,
-                  useNativeDriver: false,
-                }),
-                Animated.timing(particle.opacity, {
-                  toValue: particle.type === 'spark' ? 0.2 : 0.4,
-                  duration: 2000 + Math.random() * 1000,
-                  useNativeDriver: false,
-                }),
-              ])
-            ),
-            Animated.loop(
-              Animated.sequence([
-                Animated.timing(particle.scale, {
-                  toValue: particle.type === 'energy' ? 1.2 : 0.8,
-                  duration: 3000 + Math.random() * 1000,
-                  useNativeDriver: false,
-                }),
-                Animated.timing(particle.scale, {
-                  toValue: particle.type === 'spark' ? 0.3 : 0.6,
-                  duration: 3000 + Math.random() * 1000,
-                  useNativeDriver: false,
-                }),
-              ])
-            ),
-            Animated.loop(
-              Animated.timing(particle.rotation, {
-                toValue: 360,
-                duration: 20000 + Math.random() * 10000,
+          particles.current.forEach((particle) => {
+            const baseDuration = particle.type === 'energy' ? 6000 : 10000;
+            const animations = [
+              Animated.timing(particle.x, {
+                toValue: Math.random() * (width - 40) + 20,
+                duration: baseDuration + Math.random() * 4000,
                 useNativeDriver: false,
-              })
-            ),
-          ];
-
-          const parallelAnimation = Animated.parallel(animations);
-          animationsRef.current.push(parallelAnimation);
-
-          parallelAnimation.start();
-        });
-
-        // Add movement to energy flows for dynamic background
-        energyFlows.current.forEach((flow) => {
-          const flowAnimations = [
-            Animated.timing(flow.x, {
-              toValue: Math.random() * width,
-              duration: 12000 + Math.random() * 6000,
-              useNativeDriver: false,
-            }),
-            Animated.timing(flow.y, {
-              toValue: Math.random() * height,
-              duration: 12000 + Math.random() * 6000,
-              useNativeDriver: false,
-            }),
-            Animated.loop(
-              Animated.sequence([
-                Animated.timing(flow.progress, {
-                  toValue: 1,
-                  duration: 4000,
+              }),
+              Animated.timing(particle.y, {
+                toValue: Math.random() * (height - 40) + 20,
+                duration: baseDuration + Math.random() * 4000,
+                useNativeDriver: false,
+              }),
+              Animated.loop(
+                Animated.sequence([
+                  Animated.timing(particle.opacity, {
+                    toValue: particle.type === 'glow' ? 0.8 : 0.6,
+                    duration: 2000 + Math.random() * 1000,
+                    useNativeDriver: false,
+                  }),
+                  Animated.timing(particle.opacity, {
+                    toValue: particle.type === 'spark' ? 0.2 : 0.4,
+                    duration: 2000 + Math.random() * 1000,
+                    useNativeDriver: false,
+                  }),
+                ])
+              ),
+              Animated.loop(
+                Animated.sequence([
+                  Animated.timing(particle.scale, {
+                    toValue: particle.type === 'energy' ? 1.2 : 0.8,
+                    duration: 3000 + Math.random() * 1000,
+                    useNativeDriver: false,
+                  }),
+                  Animated.timing(particle.scale, {
+                    toValue: particle.type === 'spark' ? 0.3 : 0.6,
+                    duration: 3000 + Math.random() * 1000,
+                    useNativeDriver: false,
+                  }),
+                ])
+              ),
+              Animated.loop(
+                Animated.timing(particle.rotation, {
+                  toValue: 360,
+                  duration: 20000 + Math.random() * 10000,
                   useNativeDriver: false,
-                }),
-                Animated.timing(flow.progress, {
-                  toValue: 0,
-                  duration: 4000,
-                  useNativeDriver: false,
-                }),
-              ])
-            ),
-          ];
+                })
+              ),
+            ];
 
-          const flowParallel = Animated.parallel(flowAnimations);
-          animationsRef.current.push(flowParallel);
-          flowParallel.start();
-        });
+            const parallelAnimation = Animated.parallel(animations);
+            animationsRef.current.push(parallelAnimation);
+            parallelAnimation.start();
+          });
 
-        // Subtle breathing effect for background stars
-        Animated.loop(
-          Animated.sequence([
-            Animated.timing(constellationOpacity, {
-              toValue: 0.6,
-              duration: 4000,
-              useNativeDriver: false,
-            }),
-            Animated.timing(constellationOpacity, {
-              toValue: 0.2,
-              duration: 4000,
-              useNativeDriver: false,
-            }),
-          ])
-        ).start();
+          energyFlows.current.forEach((flow) => {
+            const flowAnimations = [
+              Animated.timing(flow.x, {
+                toValue: Math.random() * (width - 80) + 40,
+                duration: 12000 + Math.random() * 6000,
+                useNativeDriver: false,
+              }),
+              Animated.timing(flow.y, {
+                toValue: Math.random() * (height - 80) + 40,
+                duration: 12000 + Math.random() * 6000,
+                useNativeDriver: false,
+              }),
+              Animated.loop(
+                Animated.sequence([
+                  Animated.timing(flow.progress, {
+                    toValue: 1,
+                    duration: 4000,
+                    useNativeDriver: false,
+                  }),
+                  Animated.timing(flow.progress, {
+                    toValue: 0,
+                    duration: 4000,
+                    useNativeDriver: false,
+                  }),
+                ])
+              ),
+            ];
 
-        // Overall energy pulse for atmosphere
-        Animated.loop(
-          Animated.sequence([
-            Animated.timing(energyPulse, {
-              toValue: 1,
-              duration: 3000,
-              useNativeDriver: false,
-            }),
-            Animated.timing(energyPulse, {
-              toValue: 0,
-              duration: 3000,
-              useNativeDriver: false,
-            }),
-          ])
-        ).start();
+            const flowParallel = Animated.parallel(flowAnimations);
+            animationsRef.current.push(flowParallel);
+            flowParallel.start();
+          });
 
-        // Schedule next animation cycle
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
-        timeoutRef.current = setTimeout(() => {
-          if (isAnimatingRef.current) {
-            animateParticles();
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
           }
-        }, 8000 + Math.random() * 4000);
+          timeoutRef.current = setTimeout(() => {
+            if (isAnimatingRef.current) {
+              animateParticles();
+            }
+          }, 8000 + Math.random() * 4000);
+        };
+
+        animateParticles();
       };
 
-      animateParticles();
-    };
+      startAnimations();
 
-    startAnimations();
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(constellationOpacity, {
+            toValue: 0.6,
+            duration: 4000,
+            useNativeDriver: false,
+          }),
+          Animated.timing(constellationOpacity, {
+            toValue: 0.2,
+            duration: 4000,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(energyPulse, {
+            toValue: 1,
+            duration: 3000,
+            useNativeDriver: false,
+          }),
+          Animated.timing(energyPulse, {
+            toValue: 0,
+            duration: 3000,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    } else {
+      particles.current.forEach((particle, index) => {
+        const twinkleAnimation = Animated.loop(
+          Animated.sequence([
+            Animated.timing(particle.opacity, {
+              toValue: 0.7,
+              duration: 3000 + Math.random() * 2000,
+              useNativeDriver: true,
+            }),
+            Animated.timing(particle.opacity, {
+              toValue: 0.3,
+              duration: 3000 + Math.random() * 2000,
+              useNativeDriver: true,
+            }),
+          ])
+        );
+
+        setTimeout(() => {
+          twinkleAnimation.start();
+          animationsRef.current.push(twinkleAnimation);
+        }, index * 400);
+      });
+
+      const constellationBreathing = Animated.loop(
+        Animated.sequence([
+          Animated.timing(constellationOpacity, {
+            toValue: 0.5,
+            duration: 4000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(constellationOpacity, {
+            toValue: 0.2,
+            duration: 4000,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      constellationBreathing.start();
+      animationsRef.current.push(constellationBreathing);
+    }
 
     return () => {
       isAnimatingRef.current = false;
@@ -250,7 +287,6 @@ export const AnimatedBackground: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Deep space gradient background */}
       <LinearGradient
         colors={[
           'rgba(10, 10, 15, 1)',
@@ -263,16 +299,15 @@ export const AnimatedBackground: React.FC = () => {
         style={styles.gradient}
       />
 
-      {/* Background stars with breathing effect */}
       <Animated.View style={[styles.constellationLayer, { opacity: constellationOpacity }]}>
-        {Array.from({ length: 50 }).map((_, i) => (
+        {Array.from({ length: Platform.OS === 'web' ? 50 : 15 }).map((_, i) => (
           <View
             key={`star-${i}`}
             style={[
               styles.star,
               {
-                left: Math.random() * width,
-                top: Math.random() * height,
+                left: Math.random() * (width - 20) + 10,
+                top: Math.random() * (height - 20) + 10,
                 width: Math.random() * 3 + 1,
                 height: Math.random() * 3 + 1,
               },
@@ -281,21 +316,21 @@ export const AnimatedBackground: React.FC = () => {
         ))}
       </Animated.View>
 
-      {/* Ambient energy pulse overlay */}
-      <Animated.View
-        style={[
-          styles.energyPulseLayer,
-          {
-            opacity: energyPulse.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0.1, 0.3],
-            })
-          }
-        ]}
-      />
+      {Platform.OS === 'web' && (
+        <Animated.View
+          style={[
+            styles.energyPulseLayer,
+            {
+              opacity: energyPulse.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.1, 0.3],
+              })
+            }
+          ]}
+        />
+      )}
 
-      {/* Flowing energy orbs */}
-      {energyFlows.current.map((flow) => (
+      {Platform.OS === 'web' && energyFlows.current.map((flow) => (
         <Animated.View
           key={`flow-${flow.id}`}
           style={[
@@ -317,11 +352,21 @@ export const AnimatedBackground: React.FC = () => {
         />
       ))}
 
-      {/* Animated particles with different behaviors */}
       {particles.current.map((particle) => (
         <Animated.View
           key={particle.id}
-          style={getParticleStyle(particle)}
+          style={Platform.OS === 'web' ? getParticleStyle(particle) : [
+            styles.particle,
+            {
+              left: particle.x,
+              top: particle.y,
+              opacity: particle.opacity,
+              backgroundColor: particle.color,
+              width: 6,
+              height: 6,
+              transform: [],
+            },
+          ]}
         />
       ))}
     </View>
@@ -336,6 +381,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     zIndex: -1,
+    overflow: 'hidden',
   },
   gradient: {
     flex: 1,
@@ -346,15 +392,13 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+    overflow: 'hidden',
   },
   star: {
     position: 'absolute',
     backgroundColor: '#FFFFFF',
     borderRadius: 2,
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
+    boxShadow: '0px 0px 2px rgba(255, 255, 255, 0.8)',
   },
   energyPulseLayer: {
     position: 'absolute',
@@ -363,6 +407,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(140, 27, 255, 0.15)',
+    overflow: 'hidden',
   },
   energyFlow: {
     position: 'absolute',
@@ -370,10 +415,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     backgroundColor: 'rgba(255, 0, 122, 0.4)',
-    shadowColor: '#FF007A',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 15,
+    boxShadow: '0px 0px 15px rgba(255, 0, 122, 1)',
   },
   particle: {
     position: 'absolute',
@@ -381,10 +423,7 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
     backgroundColor: '#00FFB3',
-    shadowColor: '#00FFB3',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
+    boxShadow: '0px 0px 4px rgba(0, 255, 179, 0.8)',
     elevation: 4,
   },
   glowParticle: {
@@ -392,9 +431,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 12,
+    boxShadow: '0px 0px 12px rgba(255, 255, 255, 1)',
     elevation: 8,
   },
   sparkParticle: {
@@ -402,9 +439,7 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 6,
+    boxShadow: '0px 0px 6px rgba(255, 255, 255, 0.9)',
     elevation: 6,
   },
   energyParticle: {
@@ -412,9 +447,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 10,
+    boxShadow: '0px 0px 10px rgba(255, 255, 255, 1)',
     elevation: 10,
   },
 });
