@@ -272,7 +272,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginBottom: 16,
     textAlign: 'center',
-    textShadow: '0px 2px 4px rgba(0, 0, 0, 0.5)',
     letterSpacing: 1,
   },
   subtitle: {
@@ -305,7 +304,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     color: '#FFFFFF',
-    textShadow: '0px 1px 2px rgba(0, 0, 0, 0.5)',
     letterSpacing: 0.5,
   },
 });

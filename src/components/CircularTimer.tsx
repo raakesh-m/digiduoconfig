@@ -41,9 +41,9 @@ export const CircularTimer: React.FC<Props> = ({ timeRemaining, totalTime }) => 
 
   const getTimerColor = () => {
     const percentage = timeRemaining / totalTime;
-    if (percentage > 0.5) return '#10B981'; // Green
-    if (percentage > 0.2) return '#F59E0B'; // Yellow
-    return '#EF4444'; // Red
+    if (percentage > 0.5) return '#10B981';
+    if (percentage > 0.2) return '#F59E0B';
+    return '#EF4444';
   };
 
   const center = timerSize / 2;

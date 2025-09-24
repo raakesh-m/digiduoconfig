@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { TouchableOpacity, Text, StyleSheet, View, Animated, Dimensions, Platform } from 'react-native';
+import React from 'react';
+import { TouchableOpacity, Text, StyleSheet, View, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GridCell as GridCellType, CellState } from '../types';
 
@@ -12,13 +12,6 @@ interface Props {
 }
 
 export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const glowAnim = useRef(new Animated.Value(0)).current;
-  const hoverGlowAnim = useRef(new Animated.Value(0)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const shimmerAnim = useRef(new Animated.Value(0)).current;
-
-
   const handlePress = () => {
     if (state === 'dulled') return;
     onPress(cell);
@@ -30,9 +23,9 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
     switch (state) {
       case 'selected':
         return [
-          'rgba(0, 255, 179, 0.95)',   // Bright cyan
-          'rgba(140, 27, 255, 0.85)',  // Electric purple
-          'rgba(255, 0, 122, 0.90)'    // Hot pink
+          'rgba(0, 255, 179, 0.95)',
+          'rgba(140, 27, 255, 0.85)',
+          'rgba(255, 0, 122, 0.90)'
         ];
       case 'dulled':
         return [
@@ -49,33 +42,33 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
       default:
         if (value >= 9) {
           return [
-            'rgba(255, 215, 0, 0.9)',    // Gold
-            'rgba(255, 140, 0, 0.85)',   // Orange gold
-            'rgba(255, 69, 0, 0.8)'      // Red orange
+            'rgba(255, 215, 0, 0.9)',
+            'rgba(255, 140, 0, 0.85)',
+            'rgba(255, 69, 0, 0.8)'
           ];
         } else if (value >= 7) {
           return [
-            'rgba(138, 43, 226, 0.85)',  // Blue violet
-            'rgba(75, 0, 130, 0.9)',     // Indigo
-            'rgba(148, 0, 211, 0.8)'     // Dark violet
+            'rgba(138, 43, 226, 0.85)',
+            'rgba(75, 0, 130, 0.9)',
+            'rgba(148, 0, 211, 0.8)'
           ];
         } else if (value >= 5) {
           return [
-            'rgba(0, 191, 255, 0.85)',   // Deep sky blue
-            'rgba(30, 144, 255, 0.9)',   // Dodger blue
-            'rgba(65, 105, 225, 0.8)'    // Royal blue
+            'rgba(0, 191, 255, 0.85)',
+            'rgba(30, 144, 255, 0.9)',
+            'rgba(65, 105, 225, 0.8)'
           ];
         } else if (value >= 3) {
           return [
-            'rgba(50, 205, 50, 0.85)',   // Lime green
-            'rgba(34, 139, 34, 0.9)',    // Forest green
-            'rgba(0, 128, 0, 0.8)'       // Green
+            'rgba(50, 205, 50, 0.85)',
+            'rgba(34, 139, 34, 0.9)',
+            'rgba(0, 128, 0, 0.8)'
           ];
         } else {
           return [
-            'rgba(105, 105, 105, 0.75)', // Dim gray
-            'rgba(85, 85, 85, 0.85)',    // Gray
-            'rgba(65, 65, 65, 0.8)'      // Dark gray
+            'rgba(105, 105, 105, 0.75)',
+            'rgba(85, 85, 85, 0.85)',
+            'rgba(65, 65, 65, 0.8)'
           ];
         }
     }
@@ -156,7 +149,6 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
               {
                 color: state === 'dulled' ? '#666666' :
                        state === 'selected' ? '#FFFFFF' : '#FFFFFF',
-                textShadow: state === 'selected' ? '0px 1px 3px rgba(0, 0, 0, 0.8)' : '0px 1px 3px rgba(0, 0, 0, 0.6)',
                 fontSize: getCellSize() * (cell.value >= 10 ? 0.4 : 0.5),
                 fontWeight: cell.value >= 7 ? '900' : '800',
               }

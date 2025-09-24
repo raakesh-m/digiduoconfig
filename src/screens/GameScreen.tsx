@@ -571,10 +571,10 @@ export const GameScreen: React.FC = () => {
 
               <LinearGradient
                 colors={addRowsRemaining > 0 ? [
-                  'rgba(0, 255, 179, 0.15)',   // Cyan glow
-                  'rgba(140, 27, 255, 0.25)',  // Purple core
-                  'rgba(255, 0, 122, 0.20)',   // Pink accent
-                  'rgba(0, 191, 255, 0.15)'    // Blue finish
+                  'rgba(0, 255, 179, 0.15)',
+                  'rgba(140, 27, 255, 0.25)',
+                  'rgba(255, 0, 122, 0.20)',
+                  'rgba(0, 191, 255, 0.15)'
                 ] : [
                   'rgba(60, 60, 70, 0.4)',
                   'rgba(45, 45, 55, 0.6)',
@@ -766,7 +766,6 @@ const styles = StyleSheet.create({
   levelText: {
     fontWeight: '900',
     color: '#FFFFFF',
-    textShadow: '0px 2px 4px rgba(0, 0, 0, 0.5)',
     letterSpacing: 1.2,
   },
   statLabel: {
@@ -877,7 +876,6 @@ const styles = StyleSheet.create({
   },
   buttonIcon: {
     fontSize: screenWidth * 0.055,
-    textShadow: '0px 2px 4px rgba(0, 0, 0, 0.8)',
     color: '#FFFFFF',
     position: 'relative',
     zIndex: 2,
@@ -899,7 +897,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#FFFFFF',
     textAlign: 'center',
-    textShadow: '0px 1px 3px rgba(0, 0, 0, 0.7)',
     letterSpacing: 0.8,
   },
   subtextContainer: {
@@ -911,7 +908,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: 'rgba(255, 255, 255, 0.85)',
     textAlign: 'center',
-    textShadow: '0px 1px 2px rgba(0, 0, 0, 0.6)',
     letterSpacing: 0.3,
     marginBottom: 4,
   },

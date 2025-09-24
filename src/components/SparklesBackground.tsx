@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from "react";
-import { View, StyleSheet, Animated, Dimensions, Platform } from "react-native";
+import React, { useEffect, useRef } from 'react';
+import { View, StyleSheet, Animated, Dimensions, Platform } from 'react-native';
 
-const { width, height } = Dimensions.get("window");
+const { width, height } = Dimensions.get('window');
 
 interface Sparkle {
   id: number;
@@ -19,7 +19,7 @@ export const SparklesBackground: React.FC = () => {
 
   useEffect(() => {
     if (sparkles.current.length === 0) {
-      const sparkleCount = Platform.OS === "web" ? 90 : 35;
+      const sparkleCount = Platform.OS === 'web' ? 90 : 35;
 
       sparkles.current = Array.from({ length: sparkleCount }, (_, i) => {
         const margin = 50;
@@ -90,12 +90,12 @@ export const SparklesBackground: React.FC = () => {
             style={[
               styles.sparkle,
               {
-                position: "absolute",
+                position: 'absolute',
                 left: sparkle.x,
                 top: sparkle.y,
                 width: sparkle.size,
                 height: sparkle.size,
-                backgroundColor: "#FFFFFF",
+                backgroundColor: '#FFFFFF',
                 borderRadius: sparkle.size / 2,
                 opacity: 0.7,
               },
@@ -109,25 +109,25 @@ export const SparklesBackground: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
     zIndex: -1,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   gradient: {
     flex: 1,
-    backgroundColor: "#000000",
+    backgroundColor: '#000000',
   },
   sparklesContainer: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   sparkle: {
   },
