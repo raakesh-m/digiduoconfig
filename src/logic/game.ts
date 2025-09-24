@@ -1,6 +1,6 @@
 import { Grid, GridCell, Pair, LevelConfig } from '../types';
 
-// Numbers match if equal or sum to 10
+// Match if equal or sum to 10
 export const isValidPair = (a: number, b: number): boolean => {
   return a === b || a + b === 10;
 };
@@ -39,7 +39,7 @@ export const generateGrid = (config: LevelConfig): Grid => {
   };
 };
 
-// Create guaranteed matches so game isn't impossible
+// Ensure solvable pairs
 const ensureSolvablePairs = (cells: GridCell[][], config: LevelConfig): void => {
   const { startFilledRows, gridCols, numberRange } = config;
   const [minNum, maxNum] = numberRange;
@@ -47,12 +47,12 @@ const ensureSolvablePairs = (cells: GridCell[][], config: LevelConfig): void => 
   let pairsCreated = 0;
   const targetPairs = Math.min(3, Math.floor((startFilledRows * gridCols) / 4));
 
-  // Place complementary numbers next to each other
+  // Place pairs next to each other
   for (let row = 0; row < startFilledRows && pairsCreated < targetPairs; row++) {
     for (let col = 0; col < gridCols - 1 && pairsCreated < targetPairs; col += 2) {
       const num = Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum;
       cells[row][col].value = num;
-      cells[row][col + 1].value = 10 - num; // will sum to 10
+      cells[row][col + 1].value = 10 - num;
       pairsCreated++;
     }
   }
@@ -62,7 +62,7 @@ export const addNewRow = (grid: Grid, config: LevelConfig): Grid => {
   const { numberRange } = config;
   const [minNum, maxNum] = numberRange;
 
-  // Find first empty row
+  // Find empty row
   let targetRow = -1;
   for (let row = 0; row < grid.rows; row++) {
     const isEmpty = grid.cells[row].every(cell => cell.value === 0);
@@ -84,12 +84,12 @@ export const addNewRow = (grid: Grid, config: LevelConfig): Grid => {
     return row;
   });
 
-  // Add at least one solvable pair to new row
+  // Add solvable pair to new row
   const newRow = newCells[targetRow];
   if (newRow.length >= 2) {
     const num = Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum;
     newRow[0].value = num;
-    newRow[1].value = Math.random() > 0.5 ? num : 10 - num; // duplicate or complement
+    newRow[1].value = Math.random() > 0.5 ? num : 10 - num;
   }
 
   return {
@@ -116,7 +116,7 @@ export const findValidPairs = (grid: Grid): Pair[] => {
   return pairs;
 };
 
-// Mark matched cells as inactive
+// Mark matched cells inactive
 export const applyMatch = (grid: Grid, cell1: GridCell, cell2: GridCell): Grid => {
   const newCells = grid.cells.map(row =>
     row.map(cell => {
@@ -143,7 +143,7 @@ export const canStillWin = (grid: Grid, addRowsLeft: number): boolean => {
   return false;
 };
 
-// Win when all numbered cells are matched
+// Win when all cells matched
 export const isLevelComplete = (grid: Grid): boolean => {
   const activeCells = grid.cells.flat().filter(cell => cell.value > 0 && !cell.isDulled);
   return activeCells.length === 0;

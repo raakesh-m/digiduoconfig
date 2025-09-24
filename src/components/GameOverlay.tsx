@@ -11,6 +11,7 @@ interface Props {
   onRestart: () => void;
   onNextLevel?: () => void;
   onMainMenu?: () => void;
+  onButtonPress?: () => void;
 }
 
 export const GameOverlay: React.FC<Props> = ({
@@ -19,7 +20,8 @@ export const GameOverlay: React.FC<Props> = ({
   level,
   onRestart,
   onNextLevel,
-  onMainMenu
+  onMainMenu,
+  onButtonPress
 }) => {
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -164,7 +166,10 @@ export const GameOverlay: React.FC<Props> = ({
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
                   style={styles.button}
-                  onPress={onRestart}
+                  onPress={() => {
+                    onButtonPress?.();
+                    onRestart();
+                  }}
                   activeOpacity={0.8}
                 >
                   <LinearGradient
@@ -182,7 +187,10 @@ export const GameOverlay: React.FC<Props> = ({
                 {isWon && onNextLevel && (
                   <TouchableOpacity
                     style={styles.button}
-                    onPress={onNextLevel}
+                    onPress={() => {
+                      onButtonPress?.();
+                      onNextLevel?.();
+                    }}
                     activeOpacity={0.8}
                   >
                     <LinearGradient

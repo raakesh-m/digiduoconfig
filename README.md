@@ -1,159 +1,28 @@
 # DigiDuo
 
-<div align="center">
-  <img src="./assets/logo.png" alt="DigiDuo Logo" width="120" height="120" />
-  <h3>A Modern Number-Matching Puzzle Game</h3>
-  <p>Match pairs of numbers that are equal or sum to 10</p>
-</div>
+A fast-paced number matching puzzle game built with React Native and Expo. Match pairs of numbers that are either identical or sum to 10 to clear the grid before time runs out!
 
----
+## 🎮 Game Rules
 
-## 🎮 Game Overview
+- **Match Condition**: Numbers match if they are equal OR sum to 10
+  - Examples: `5+5=10`, `3+7=10`, `9+1=10`, `4+4=8` (matches), `2+6=8` (no match)
+- **Objective**: Clear all numbered cells from the grid by making valid matches
+- **Time Limit**: Complete each level within 120 seconds
+- **Power-ups**: Use "Add Row" charges (limited per level) to get more numbers when stuck
+- **Scoring**:
+  - Base score: (number1 + number2) × 10
+  - Streak multiplier: Up to 5x for consecutive quick matches
+  - Quick match bonus: Make matches within 3 seconds for streak multiplier
 
-DigiDuo is an engaging puzzle game where players match pairs of numbers in a grid. Numbers can be matched if they are **equal** or if they **sum to 10**. The goal is to clear all numbered cells from the grid before time runs out.
-
-### 🎯 Game Rules
-
-1. **Matching Logic**: Match two numbers if:
-
-   - They are equal (5 + 5)
-   - They sum to 10 (3 + 7, 2 + 8, 1 + 9)
-
-2. **Objective**: Clear all numbered cells from the grid
-
-3. **Time Limit**: Each level has a countdown timer
-
-4. **Add Rows**: Limited ability to add new rows when stuck
-
-5. **Scoring**:
-   - Base score: (num1 + num2) × 10
-   - Streak multiplier: Up to 5x for quick consecutive matches
-   - Bonus for speed and efficiency
-
----
-
-## 🏗️ Architecture
-
-### Project Structure
-
-```
-DigiDuo/
-├── src/
-│   ├── components/          # Reusable UI components
-│   │   ├── AnimatedBackground.tsx
-│   │   ├── CircularTimer.tsx
-│   │   ├── GameOverlay.tsx
-│   │   ├── Grid.tsx
-│   │   ├── GridCell.tsx
-│   │   └── SparklesBackground.tsx
-│   ├── levels/              # Level configuration
-│   │   └── config.ts
-│   ├── logic/               # Game logic and utilities
-│   │   └── game.ts
-│   ├── screens/             # Main screen components
-│   │   └── GameScreen.tsx
-│   └── types/               # TypeScript type definitions
-│       └── index.ts
-├── assets/                  # Static assets
-│   ├── icon.png
-│   ├── adaptive-icon.png
-│   ├── splash-icon.png
-│   ├── favicon.png
-│   └── logo.png
-├── android/                 # Android-specific files
-├── App.tsx                  # Main app component
-├── index.ts                 # App entry point
-└── package.json
-```
-
-### Component Architecture
-
-#### Core Components
-
-- **GameScreen**: Main game interface with state management
-- **Grid**: Renders the game grid and handles cell interactions
-- **GridCell**: Individual cell component with animations and styling
-- **GameOverlay**: Game over/victory screen with restart options
-- **CircularTimer**: Animated countdown timer
-
-#### Background Effects
-
-- **AnimatedBackground**: Particle system with energy flows (web-optimized)
-- **SparklesBackground**: Simple sparkle animation system
-
-### State Management
-
-The game uses React's built-in state management with the following key states:
-
-```typescript
-interface GameState {
-  grid: Grid; // Current grid configuration
-  selectedCells: GridCell[]; // Currently selected cells
-  level: LevelConfig; // Current level settings
-  timeRemaining: number; // Countdown timer
-  pairsFound: number; // Number of successful matches
-  addRowsUsed: number; // Add-row powerups used
-  isGameOver: boolean; // Game completion state
-  isWon: boolean; // Victory condition
-}
-```
-
----
-
-## 📱 Level Structure
-
-The game features 3 progressively challenging levels:
-
-### Level 1 - Beginner
-
-- **Grid**: 6×8 (48 cells)
-- **Starting Rows**: 3 filled rows
-- **Number Range**: 1-9
-- **Add Rows**: 3 available
-- **Time Limit**: 2 minutes
-
-### Level 2 - Intermediate
-
-- **Grid**: 7×9 (63 cells)
-- **Starting Rows**: 4 filled rows
-- **Number Range**: 1-9
-- **Add Rows**: 3 available
-- **Time Limit**: 2 minutes
-
-### Level 3 - Advanced
-
-- **Grid**: 8×10 (80 cells)
-- **Starting Rows**: 4 filled rows
-- **Number Range**: 1-9
-- **Add Rows**: 2 available
-- **Time Limit**: 2 minutes
-
-### Level Configuration
-
-```typescript
-interface LevelConfig {
-  id: number;
-  name: string;
-  gridRows: number; // Total grid height
-  gridCols: number; // Total grid width
-  startFilledRows: number; // Initial filled rows
-  numberRange: [number, number]; // Min/max values
-  addRowLimit: number; // Available add-row powerups
-  timeLimit: number; // Time limit in seconds
-}
-```
-
----
-
-## 🚀 Setup & Installation
+## 🚀 Setup Instructions
 
 ### Prerequisites
 
-- **Node.js** (v16 or higher)
-- **npm** or **yarn**
-- **Expo CLI**: `npm install -g @expo/cli`
+- Node.js (v16 or later)
+- npm or yarn
+- Expo CLI: `npm install -g @expo/cli`
 
-### Installation Steps
+### Installation
 
 1. **Clone the repository**
 
@@ -168,199 +37,193 @@ interface LevelConfig {
    npm install
    ```
 
-3. **Start development server**
+3. **Start the development server**
 
    ```bash
    npm start
    ```
 
-4. **Run on specific platforms**
+4. **Run on different platforms**
 
    ```bash
-   # Web browser
-   npm run web
-
-   # iOS simulator (macOS only)
+   # iOS (requires Xcode on macOS)
    npm run ios
 
-   # Android emulator
+   # Android (requires Android Studio)
    npm run android
+
+   # Web
+   npm run web
    ```
 
-### Platform-Specific Setup
+### Development Setup
 
-#### iOS Development
+- **TypeScript**: Fully typed codebase with strict mode enabled
+- **Expo SDK**: Version ~54.0.10
+- **React Native**: Version 0.81.4
+- **Audio**: expo-av for cross-platform sound effects and music
+- **Graphics**: expo-linear-gradient and react-native-svg for enhanced UI
 
-- **Xcode** (macOS required)
-- **iOS Simulator** or physical device
-- Apple Developer account (for device testing)
+## 📋 Level Structure
 
-#### Android Development
+### Level Progression
 
-- **Android Studio**
-- **Android SDK** and emulator
-- Enable developer mode on physical device
+| Level | Grid Size | Start Rows | Number Range | Add Row Charges | Time Limit |
+| ----- | --------- | ---------- | ------------ | --------------- | ---------- |
+| 1     | 6×8       | 3          | 1-9          | 3               | 120s       |
+| 2     | 7×9       | 4          | 1-9          | 3               | 120s       |
+| 3     | 8×10      | 4          | 1-9          | 2               | 120s       |
 
-#### Web Development
+### Level Configuration
 
-- Modern web browser
-- No additional setup required
+- **Grid Size**: Increases with each level for added complexity
+- **Start Rows**: Number of rows filled with numbers at level start
+- **Number Range**: All levels use numbers 1-9
+- **Add Row Charges**: Decreases in later levels to increase difficulty
+- **Guaranteed Pairs**: Each level ensures at least 3 solvable pairs at start
 
----
+## 🏗️ Architecture
 
-## 🛠️ Development
+### Project Structure
 
-### Key Technologies
+```
+DigiDuo/
+├── src/
+│   ├── components/          # Reusable UI components
+│   │   ├── AnimatedBackground.tsx    # Particle animation system
+│   │   ├── CircularTimer.tsx         # SVG-based countdown timer
+│   │   ├── GameOverlay.tsx           # Victory/defeat modal
+│   │   ├── Grid.tsx                  # Game grid container
+│   │   ├── GridCell.tsx              # Individual cell component
+│   │   └── SparklesBackground.tsx    # Background sparkle effects
+│   ├── hooks/              # Custom React hooks
+│   │   └── useSound.ts              # Audio management system
+│   ├── levels/             # Level configuration
+│   │   └── config.ts                # Level definitions and settings
+│   ├── logic/              # Game logic
+│   │   └── game.ts                  # Core game mechanics
+│   ├── screens/            # Main screens
+│   │   └── GameScreen.tsx           # Primary game interface
+│   └── types/              # TypeScript definitions
+│       └── index.ts                 # Shared type definitions
+├── assets/                 # Static assets
+│   ├── wavs/               # Audio files
+│   └── images/             # App icons and splash screens
+├── App.tsx                 # Root component
+└── index.ts               # App entry point
+```
 
-- **React Native**: Cross-platform mobile development
-- **Expo**: Development platform and tools
-- **TypeScript**: Type-safe JavaScript
-- **React Native SVG**: Vector graphics support
-- **Expo Linear Gradient**: Gradient effects
+### Core Components
+
+#### Game Logic (`src/logic/game.ts`)
+
+- **Grid Generation**: Creates randomized grids with guaranteed solvable pairs
+- **Match Validation**: Implements the core matching rules (equal or sum to 10)
+- **Pair Detection**: Finds all valid pairs in current grid state
+- **Row Addition**: Adds new rows with guaranteed matches when power-up used
+- **Win Conditions**: Detects level completion and game over states
+
+#### Audio System (`src/hooks/useSound.ts`)
+
+- **Cross-Platform**: Web Audio API for web, Expo AV for mobile
+- **Rich Sound Effects**: Procedurally generated audio for web platform
+- **Music Management**: Background music with seamless transitions
+- **Volume Controls**: Master volume and mute functionality
+- **Fallback System**: Graceful degradation when audio fails
+
+#### State Management
+
+- **React Hooks**: useState and useEffect for component state
+- **Game State**: Centralized in GameScreen component
+- **Animation State**: Managed with React Native Animated API
+- **Audio State**: Isolated in useSound hook
 
 ### Performance Optimizations
 
-- Platform-specific particle counts (web vs mobile)
-- Efficient animation handling with cleanup
-- Memoized calculations for grid operations
-- Optimized re-renders with proper state management
+#### Mobile Performance
 
-### Code Quality
+- **Reduced Particle Counts**: 35 particles on mobile vs 90 on web
+- **Simplified Animations**: Native driver usage where possible
+- **Memory Management**: Proper cleanup of timers and audio resources
+- **Platform Detection**: Different rendering strategies per platform
 
-- **TypeScript**: Full type coverage
-- **ESLint**: Code linting and formatting
-- **Consistent styling**: Single quotes, proper imports
-- **Clean architecture**: Separation of concerns
+#### Web Performance
 
----
+- **Web Audio API**: Rich, procedurally generated sound effects
+- **Advanced Animations**: Complex particle systems and effects
+- **Responsive Design**: Adapts to different screen sizes
+- **Caching**: Audio context reuse and optimization
+
+### Animation System
+
+#### Background Effects
+
+- **Particle Animation**: Moving sparkles with physics simulation
+- **Energy Flows**: Dynamic particle streams (web only)
+- **Constellation Layer**: Breathing star field effect
+- **Gradient Transitions**: Smooth color transitions
+
+#### Game Feedback
+
+- **Cell Animations**: Scale, glow, and color transitions
+- **Score Popups**: Animated score increases with scaling
+- **Streak Effects**: Visual feedback for consecutive matches
+- **Timer Animation**: Circular progress with color changes
 
 ## 🎨 Visual Design
 
-### Color Palette
+### Color Scheme
 
-- **Primary Colors**: Cyan (#00FFB3), Purple (#8C1BFF), Pink (#FF007A)
-- **Secondary Colors**: Gold (#FFD600), Blue (#00BFFF), Orange (#FF6F61)
-- **Background**: Dark gradient with animated particles
-- **UI Elements**: Glass morphism effects with subtle gradients
+- **Background**: Deep space gradient (`#000000` to `#2A1B3D`)
+- **UI Elements**: Glassmorphism with subtle transparency
+- **Cell Colors**: Value-based color coding:
+  - Low values (1-2): Gray tones
+  - Medium values (3-4): Green tones
+  - Higher values (5-6): Blue tones
+  - High values (7-8): Purple tones
+  - Maximum values (9): Gold tones
 
-### Animations
+### Typography
 
-- **Smooth transitions**: Grid scaling and fading
-- **Particle effects**: Dynamic background animation
-- **Cell interactions**: Hover, selection, and match animations
-- **UI feedback**: Button pulses, score pop-ups, streak effects
+- **Headers**: Bold, high-contrast white text
+- **UI Text**: Medium weight with good readability
+- **Numbers**: Extra bold for clear visibility in cells
 
----
+## 🔧 Development Notes
 
-## 📦 Building for Production
+### Platform Differences
 
-### Development Build
+- **Web**: Enhanced with Web Audio API and advanced particle effects
+- **Mobile**: Optimized for performance with simplified animations
+- **iOS**: Native driver animations, proper audio session handling
+- **Android**: Edge-to-edge design, predictive back gesture disabled
 
-```bash
-expo start
-```
+### Build Configuration
 
-### Production Build
+- **TypeScript**: Strict mode enabled for type safety
+- **Expo**: New architecture enabled for React Native 0.81+
+- **EAS Build**: Configured for development, preview, and production builds
 
-```bash
-# iOS
-expo build:ios
+### Audio Implementation
 
-# Android
-expo build:android
+- **File Formats**: WAV files for compatibility
+- **Web Fallback**: Procedural audio generation when files fail
+- **Mobile Fallback**: Silent operation with error logging
+- **Volume Mixing**: Proper audio session management
 
-# Web
-expo build:web
-```
+## 📱 Supported Platforms
 
-### App Store Deployment
+- **iOS**: iPhone and iPad (iOS 13+)
+- **Android**: Android 7+ (API level 24+)
+- **Web**: Modern browsers with Web Audio API support
 
-1. **Configure app.json** with proper metadata
-2. **Generate app icons** (already included)
-3. **Build signed APK/IPA** using EAS Build
-4. **Upload to respective stores**
+## 🎵 Audio Credits
 
----
+Custom sound effects and music included for:
 
-## 🧪 Game Logic
-
-### Core Functions
-
-#### Matching Logic
-
-```typescript
-export const isValidPair = (a: number, b: number): boolean => {
-  return a === b || a + b === 10;
-};
-```
-
-#### Grid Generation
-
-- Random number placement within range
-- Guaranteed solvable pairs creation
-- Empty row management for add-row feature
-
-#### Win/Loss Conditions
-
-- **Win**: All numbered cells matched
-- **Loss**: Timer reaches zero with remaining cells
-- **Continuation**: Valid pairs exist or add-rows available
-
----
-
-## 🎯 Features
-
-### Gameplay Features
-
-- ✅ Number matching with dual logic (equal/sum to 10)
-- ✅ Progressive difficulty across 3 levels
-- ✅ Countdown timer with visual indicator
-- ✅ Add-row powerup system
-- ✅ Score system with streak multipliers
-- ✅ Animated feedback for all interactions
-
-### Technical Features
-
-- ✅ Cross-platform compatibility (iOS, Android, Web)
-- ✅ Responsive design for all screen sizes
-- ✅ Smooth animations and transitions
-- ✅ Professional UI with modern design
-- ✅ TypeScript for type safety
-- ✅ Performance optimized for mobile devices
-
----
-
-## 📝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Run TypeScript check (`npx tsc --noEmit`)
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
-
----
-
-## 🎮 How to Play
-
-1. **Start**: Select two cells with numbers
-2. **Match**: Numbers must be equal OR sum to 10
-3. **Clear**: Matched cells become inactive (grayed out)
-4. **Strategy**: Use add-rows wisely when no matches available
-5. **Win**: Clear all numbered cells before time expires
-
-### Pro Tips
-
-- Look for quick consecutive matches to build streaks
-- Plan ahead - some matches may block others
-- Save add-rows for critical moments
-- Higher numbers (7-9) give more points
+- Cell selection and matching
+- Level completion and game over
+- UI interactions and power-ups
+- Background music with seamless looping
 
 ---

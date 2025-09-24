@@ -27,6 +27,7 @@ import {
   isLevelComplete,
   canStillWin,
 } from '../logic/game';
+import { useSound } from '../hooks/useSound';
 
 export const GameScreen: React.FC = () => {
   const [currentLevel, setCurrentLevel] = useState(1);
@@ -37,6 +38,29 @@ export const GameScreen: React.FC = () => {
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [lastMatchTime, setLastMatchTime] = useState<number | null>(null);
+
+  const {
+    playCellSelect,
+    playCellMatch,
+    playCellMismatch,
+    playRowAdd,
+    playLevelComplete,
+    playGameOver,
+    playButtonPress,
+    playTick,
+    playWhoosh,
+    playStreak,
+    playPowerup,
+    toggleMute,
+    getMuted,
+    enableWebAudio,
+    enableMobileAudio,
+    stopMusic,
+    playWelcomeMusic,
+    playGameMusic,
+  } = useSound();
+
+  const [isSoundMuted, setIsSoundMuted] = useState(false);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const appStateRef = useRef(AppState.currentState);
@@ -58,6 +82,8 @@ export const GameScreen: React.FC = () => {
       clearTimeout(invalidFlashTimeoutRef.current);
       invalidFlashTimeoutRef.current = null;
     }
+
+    playWhoosh();
 
     const config = getLevelConfig(levelId);
     const gameGrid = generateGrid(config);
@@ -166,6 +192,9 @@ export const GameScreen: React.FC = () => {
       clearInterval(timerRef.current);
     }
 
+    // Start game music
+    playGameMusic();
+
     timerRef.current = setInterval(() => {
       setGameState(prev => {
         if (!prev || prev.isGameOver) return prev;
@@ -173,6 +202,11 @@ export const GameScreen: React.FC = () => {
         const newTimeRemaining = prev.timeRemaining - 1;
 
         if (newTimeRemaining <= 0) {
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
+
           return {
             ...prev,
             timeRemaining: 0,
@@ -194,6 +228,7 @@ export const GameScreen: React.FC = () => {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    stopMusic();
   };
 
   useEffect(() => {
@@ -209,6 +244,7 @@ export const GameScreen: React.FC = () => {
         });
       } else if (nextAppState.match(/inactive|background/)) {
         stopTimer();
+        stopMusic();
       }
       appStateRef.current = nextAppState;
     };
@@ -217,12 +253,13 @@ export const GameScreen: React.FC = () => {
 
     return () => {
       stopTimer();
+      stopMusic();
       subscription?.remove();
       if (invalidFlashTimeoutRef.current) {
         clearTimeout(invalidFlashTimeoutRef.current);
       }
     };
-  }, []);
+  }, [playWelcomeMusic, stopMusic]);
 
   useEffect(() => {
     if (gameState && !gameState.isGameOver && !timerRef.current) {
@@ -240,19 +277,36 @@ export const GameScreen: React.FC = () => {
 
   useEffect(() => {
     if (gameState && isLevelComplete(gameState.grid) && !gameState.isGameOver) {
+      playLevelComplete();
       setGameState(prev => prev ? {
         ...prev,
         isGameOver: true,
         isWon: true,
       } : null);
     }
-  }, [gameState?.grid]);
+  }, [gameState?.grid, playLevelComplete]);
+
+  useEffect(() => {
+    if (gameState?.isGameOver && !gameState.isWon) {
+      playGameOver();
+    }
+  }, [gameState?.isGameOver, gameState?.isWon, playGameOver]);
+
+  useEffect(() => {
+    if (gameState?.timeRemaining && gameState.timeRemaining <= 10 && gameState.timeRemaining > 0) {
+      playTick();
+    }
+  }, [gameState?.timeRemaining, playTick]);
 
   const handleCellPress = (cell: GridCell) => {
     if (!gameState || gameState.isGameOver || cell.isDulled) return;
 
     if (selectedCells.length >= 2) return;
     if (selectedCells.some(c => c.id === cell.id)) return;
+
+    enableWebAudio();
+    enableMobileAudio();
+    playCellSelect();
 
     const newSelection = [...selectedCells, cell];
     setSelectedCells(newSelection);
@@ -269,6 +323,12 @@ export const GameScreen: React.FC = () => {
         const baseScore = (first.value + second.value) * 10;
         const streakMultiplier = Math.min(newStreak, 5);
         const scoreToAdd = baseScore * streakMultiplier;
+
+        playCellMatch(newStreak);
+
+        if (newStreak > 2) {
+          playStreak(newStreak);
+        }
 
         setStreak(newStreak);
         setScore(prev => prev + scoreToAdd);
@@ -319,6 +379,7 @@ export const GameScreen: React.FC = () => {
         setSelectedCells([]);
         setInvalidCells([]);
       } else {
+        playCellMismatch();
         setStreak(0);
         setInvalidCells(newSelection);
         setSelectedCells([]);
@@ -338,6 +399,9 @@ export const GameScreen: React.FC = () => {
     if (!gameState || gameState.addRowsUsed >= gameState.level.addRowLimit) {
       return;
     }
+
+    playRowAdd();
+    playPowerup();
 
     Animated.sequence([
       Animated.timing(buttonGlowAnim, {
@@ -360,7 +424,15 @@ export const GameScreen: React.FC = () => {
     } : null);
   };
 
+  const handleSoundToggle = () => {
+    enableMobileAudio();
+
+    const newMutedState = toggleMute();
+    setIsSoundMuted(newMutedState);
+  };
+
   const handleRestart = () => {
+    playButtonPress();
     setScore(0);
     setStreak(0);
     setLastMatchTime(null);
@@ -369,6 +441,7 @@ export const GameScreen: React.FC = () => {
 
   const handleNextLevel = () => {
     if (currentLevel < 3) {
+      playButtonPress();
       Animated.sequence([
         Animated.timing(levelTransitionAnim, {
           toValue: 0,
@@ -435,6 +508,16 @@ export const GameScreen: React.FC = () => {
                   timeRemaining={gameState.timeRemaining}
                   totalTime={gameState.level.timeLimit}
                 />
+
+                <TouchableOpacity
+                  style={styles.soundToggle}
+                  onPress={handleSoundToggle}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.soundIcon}>
+                    {isSoundMuted ? '🔇' : '🔊'}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -689,6 +772,7 @@ export const GameScreen: React.FC = () => {
         level={currentLevel}
         onRestart={handleRestart}
         onNextLevel={gameState.isWon && currentLevel < 3 ? handleNextLevel : undefined}
+        onButtonPress={playButtonPress}
       />
     </View>
   );
@@ -762,6 +846,23 @@ const styles = StyleSheet.create({
   },
   timerSection: {
     alignItems: 'center',
+    position: 'relative',
+  },
+  soundToggle: {
+    position: 'absolute',
+    top: -10,
+    right: -25,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  soundIcon: {
+    fontSize: 18,
   },
   levelText: {
     fontWeight: '900',
