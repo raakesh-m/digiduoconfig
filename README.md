@@ -1,229 +1,241 @@
 # DigiDuo
 
-A fast-paced number matching puzzle game built with React Native and Expo. Match pairs of numbers that are either identical or sum to 10 to clear the grid before time runs out!
+A fast-paced number-matching puzzle game built with React Native and Expo. Match numbers that are equal or sum to 10 to clear the grid and progress through challenging levels.
 
 ## 🎮 Game Rules
 
-- **Match Condition**: Numbers match if they are equal OR sum to 10
-  - Examples: `5+5=10`, `3+7=10`, `9+1=10`, `4+4=8` (matches), `2+6=8` (no match)
-- **Objective**: Clear all numbered cells from the grid by making valid matches
-- **Time Limit**: Complete each level within 120 seconds
-- **Power-ups**: Use "Add Row" charges (limited per level) to get more numbers when stuck
-- **Scoring**:
-  - Base score: (number1 + number2) × 10
-  - Streak multiplier: Up to 5x for consecutive quick matches
-  - Quick match bonus: Make matches within 3 seconds for streak multiplier
+DigiDuo is a strategic puzzle game where you match pairs of numbers on a grid:
 
-## 🚀 Setup Instructions
+### Matching Rules
+- **Equal Numbers**: Match two identical numbers (e.g., 5 + 5)
+- **Complement to 10**: Match two numbers that sum to 10 (e.g., 3 + 7, 4 + 6)
+- **Adjacent Cells**: Only adjacent cells (horizontal, vertical, or diagonal) can be matched
+
+### Objective
+- Clear all filled rows by matching number pairs
+- Complete levels within the time limit
+- Use strategic thinking to avoid getting stuck
+
+### Special Features
+- **Add Row Power-up**: Limited uses per level to add new numbers when stuck
+- **Streak System**: Build combos for higher scores
+- **Dynamic Difficulty**: Later levels have fewer add-row chances
+
+## 🚀 Setup & Installation
 
 ### Prerequisites
+- **Node.js** (v18 or higher)
+- **npm** or **yarn**
+- **Expo CLI**: `npm install -g @expo/cli`
 
-- Node.js (v16 or later)
-- npm or yarn
-- Expo CLI: `npm install -g @expo/cli`
-
-### Installation
+### Installation Steps
 
 1. **Clone the repository**
-
    ```bash
    git clone <repository-url>
    cd DigiDuo
    ```
 
 2. **Install dependencies**
-
    ```bash
    npm install
    ```
 
 3. **Start the development server**
-
    ```bash
    npm start
    ```
 
-4. **Run on different platforms**
-
+4. **Run on specific platforms**
    ```bash
-   # iOS (requires Xcode on macOS)
+   # Web browser
+   npm run web
+
+   # iOS Simulator (macOS only)
    npm run ios
 
-   # Android (requires Android Studio)
+   # Android Emulator
    npm run android
-
-   # Web
-   npm run web
    ```
 
-### Development Setup
-
-- **TypeScript**: Fully typed codebase with strict mode enabled
-- **Expo SDK**: Version ~54.0.10
-- **React Native**: Version 0.81.4
-- **Audio**: expo-av for cross-platform sound effects and music
-- **Graphics**: expo-linear-gradient and react-native-svg for enhanced UI
-
-## 📋 Level Structure
-
-### Level Progression
-
-| Level | Grid Size | Start Rows | Number Range | Add Row Charges | Time Limit |
-| ----- | --------- | ---------- | ------------ | --------------- | ---------- |
-| 1     | 6×8       | 3          | 1-9          | 3               | 120s       |
-| 2     | 7×9       | 4          | 1-9          | 3               | 120s       |
-| 3     | 8×10      | 4          | 1-9          | 2               | 120s       |
-
-### Level Configuration
-
-- **Grid Size**: Increases with each level for added complexity
-- **Start Rows**: Number of rows filled with numbers at level start
-- **Number Range**: All levels use numbers 1-9
-- **Add Row Charges**: Decreases in later levels to increase difficulty
-- **Guaranteed Pairs**: Each level ensures at least 3 solvable pairs at start
+### Development Environment
+- **Expo SDK**: ~54.0.10
+- **React**: 19.1.0
+- **React Native**: 0.81.4
+- **TypeScript**: ~5.9.2
 
 ## 🏗️ Architecture
 
-### Project Structure
+DigiDuo follows a modular, game-engine architecture designed for reusability and extensibility.
+
+### Core Architecture
 
 ```
-DigiDuo/
-├── src/
-│   ├── components/          # Reusable UI components
-│   │   ├── AnimatedBackground.tsx    # Particle animation system
-│   │   ├── CircularTimer.tsx         # SVG-based countdown timer
-│   │   ├── GameOverlay.tsx           # Victory/defeat modal
-│   │   ├── Grid.tsx                  # Game grid container
-│   │   ├── GridCell.tsx              # Individual cell component
-│   │   └── SparklesBackground.tsx    # Background sparkle effects
-│   ├── hooks/              # Custom React hooks
-│   │   └── useSound.ts              # Audio management system
-│   ├── levels/             # Level configuration
-│   │   └── config.ts                # Level definitions and settings
-│   ├── logic/              # Game logic
-│   │   └── game.ts                  # Core game mechanics
-│   ├── screens/            # Main screens
-│   │   └── GameScreen.tsx           # Primary game interface
-│   └── types/              # TypeScript definitions
-│       └── index.ts                 # Shared type definitions
-├── assets/                 # Static assets
-│   ├── wavs/               # Audio files
-│   └── images/             # App icons and splash screens
-├── App.tsx                 # Root component
-└── index.ts               # App entry point
+src/
+├── engine/           # Generic game engine
+│   └── types.ts     # Core interfaces and types
+├── games/
+│   └── digiduo/     # DigiDuo-specific implementation
+│       ├── DigiDuoEngine.ts     # Game logic
+│       └── DigiDuoConfig.ts     # Level configuration
+├── components/      # UI components
+│   ├── GenericGrid.tsx          # Reusable grid component
+│   ├── GenericGridCell.tsx      # Reusable cell component
+│   ├── Grid.tsx                 # Legacy wrapper
+│   └── GridCell.tsx             # Legacy wrapper
+├── screens/         # Game screens
+├── hooks/           # Custom React hooks
+└── utils/           # Utility functions
 ```
 
-### Core Components
+### Design Patterns
 
-#### Game Logic (`src/logic/game.ts`)
+**Game Engine Pattern**
+- `GameEngine<T>`: Generic interface for all game types
+- `DigiDuoEngine`: Concrete implementation for DigiDuo rules
+- Type-safe with TypeScript generics
 
-- **Grid Generation**: Creates randomized grids with guaranteed solvable pairs
-- **Match Validation**: Implements the core matching rules (equal or sum to 10)
-- **Pair Detection**: Finds all valid pairs in current grid state
-- **Row Addition**: Adds new rows with guaranteed matches when power-up used
-- **Win Conditions**: Detects level completion and game over states
+**Component Architecture**
+- Generic components (`GenericGrid`, `GenericGridCell`) for reusability
+- Legacy wrappers maintain backward compatibility
+- Dependency injection for customization
 
-#### Audio System (`src/hooks/useSound.ts`)
+**State Management**
+- React hooks for game state
+- Centralized game logic in engine classes
+- Immutable state updates
 
-- **Cross-Platform**: Web Audio API for web, Expo AV for mobile
-- **Rich Sound Effects**: Procedurally generated audio for web platform
-- **Music Management**: Background music with seamless transitions
-- **Volume Controls**: Master volume and mute functionality
-- **Fallback System**: Graceful degradation when audio fails
+## 🎯 Level Structure
 
-#### State Management
+### Level Configuration
 
-- **React Hooks**: useState and useEffect for component state
-- **Game State**: Centralized in GameScreen component
-- **Animation State**: Managed with React Native Animated API
-- **Audio State**: Isolated in useSound hook
+Each level is defined by:
 
-### Performance Optimizations
+```typescript
+interface DigiDuoLevelConfig {
+  id: number;              // Unique level identifier
+  name: string;            // Display name
+  gridRows: number;        // Total grid rows (9)
+  gridCols: number;        // Total grid columns (9)
+  startFilledRows: number; // Initially filled rows (6)
+  numberRange: [number, number]; // Range of numbers [1, 9]
+  addRowLimit: number;     // Max add-row power-ups
+  timeLimit: number;       // Time limit in seconds
+}
+```
 
-#### Mobile Performance
+### Current Levels
 
-- **Reduced Particle Counts**: 35 particles on mobile vs 90 on web
-- **Simplified Animations**: Native driver usage where possible
-- **Memory Management**: Proper cleanup of timers and audio resources
-- **Platform Detection**: Different rendering strategies per platform
+| Level | Name    | Add Rows | Time Limit | Difficulty |
+|-------|---------|----------|------------|------------|
+| 1     | Level 1 | 3        | 120s       | Easy       |
+| 2     | Level 2 | 3        | 120s       | Medium     |
+| 3     | Level 3 | 2        | 120s       | Hard       |
 
-#### Web Performance
+### Grid Layout
+- **9×9 Grid**: Total playing field
+- **6 Initial Rows**: Pre-filled with random numbers (1-9)
+- **3 Empty Rows**: Available for expansion via add-row power-up
 
-- **Web Audio API**: Rich, procedurally generated sound effects
-- **Advanced Animations**: Complex particle systems and effects
-- **Responsive Design**: Adapts to different screen sizes
-- **Caching**: Audio context reuse and optimization
+## 🎵 Audio System
 
-### Animation System
+### Sound Effects
+- **Cell Selection**: Audio feedback for cell taps
+- **Successful Match**: Satisfying match confirmation
+- **Invalid Match**: Clear error indication
+- **Level Complete**: Victory celebration
+- **Game Over**: Failure notification
+- **Streak Bonus**: Combo achievement sounds
 
-#### Background Effects
-
-- **Particle Animation**: Moving sparkles with physics simulation
-- **Energy Flows**: Dynamic particle streams (web only)
-- **Constellation Layer**: Breathing star field effect
-- **Gradient Transitions**: Smooth color transitions
-
-#### Game Feedback
-
-- **Cell Animations**: Scale, glow, and color transitions
-- **Score Popups**: Animated score increases with scaling
-- **Streak Effects**: Visual feedback for consecutive matches
-- **Timer Animation**: Circular progress with color changes
+### Audio Features
+- **Web Audio API**: Advanced browser audio processing
+- **Platform Fallback**: React Native Audio for mobile
+- **Dynamic Music**: Background music with intensity changes
+- **Volume Control**: User-adjustable audio levels
 
 ## 🎨 Visual Design
 
 ### Color Scheme
+- **Primary**: `#00FFB3` (Neon Green)
+- **Secondary**: `#8C1BFF` (Purple)
+- **Accent**: `#FF007A` (Pink)
+- **Background**: Dark theme with glass effects
 
-- **Background**: Deep space gradient (`#000000` to `#2A1B3D`)
-- **UI Elements**: Glassmorphism with subtle transparency
-- **Cell Colors**: Value-based color coding:
-  - Low values (1-2): Gray tones
-  - Medium values (3-4): Green tones
-  - Higher values (5-6): Blue tones
-  - High values (7-8): Purple tones
-  - Maximum values (9): Gold tones
+### Visual Effects
+- **Linear Gradients**: Dynamic cell coloring based on values
+- **Animations**: Smooth transitions and feedback
+- **Glass Morphism**: Modern UI with transparency effects
+- **Responsive Design**: Adapts to different screen sizes
 
-### Typography
+## 🔧 Customization
 
-- **Headers**: Bold, high-contrast white text
-- **UI Text**: Medium weight with good readability
-- **Numbers**: Extra bold for clear visibility in cells
+### Adding New Games
 
-## 🔧 Development Notes
+1. **Create Game Engine**
+   ```typescript
+   class MyGameEngine implements GameEngine<MyValueType> {
+     generateGrid(config: MyLevelConfig): GenericGrid<MyValueType> {
+       // Implementation
+     }
+     // ... other methods
+   }
+   ```
 
-### Platform Differences
+2. **Define Level Configuration**
+   ```typescript
+   interface MyLevelConfig extends LevelConfig {
+     // Custom properties
+   }
+   ```
 
-- **Web**: Enhanced with Web Audio API and advanced particle effects
-- **Mobile**: Optimized for performance with simplified animations
-- **iOS**: Native driver animations, proper audio session handling
-- **Android**: Edge-to-edge design, predictive back gesture disabled
+3. **Register Game**
+   ```typescript
+   export const MY_GAME_CONFIG: GameConfig<MyValueType> = {
+     name: 'My Game',
+     engine: new MyGameEngine(),
+     levels: MY_LEVELS,
+     // ... configuration
+   };
+   ```
 
-### Build Configuration
+### Modifying Levels
+Edit `src/games/digiduo/DigiDuoConfig.ts` to:
+- Add new levels
+- Modify difficulty parameters
+- Adjust time limits
+- Change grid sizes
 
-- **TypeScript**: Strict mode enabled for type safety
-- **Expo**: New architecture enabled for React Native 0.81+
-- **EAS Build**: Configured for development, preview, and production builds
+### Custom Themes
+Modify the theme configuration in `DigiDuoConfig.ts`:
+```typescript
+theme: {
+  colors: {
+    primary: '#your-color',
+    // ... other colors
+  }
+}
+```
 
-### Audio Implementation
+## 📱 Platform Support
 
-- **File Formats**: WAV files for compatibility
-- **Web Fallback**: Procedural audio generation when files fail
-- **Mobile Fallback**: Silent operation with error logging
-- **Volume Mixing**: Proper audio session management
-
-## 📱 Supported Platforms
-
-- **iOS**: iPhone and iPad (iOS 13+)
-- **Android**: Android 7+ (API level 24+)
 - **Web**: Modern browsers with Web Audio API support
+- **iOS**: iOS 13+ via Expo
+- **Android**: Android 7+ via Expo
 
-## 🎵 Audio Credits
+## 🧪 Testing
 
-Custom sound effects and music included for:
+```bash
+# Type checking
+npx tsc --noEmit
 
-- Cell selection and matching
-- Level completion and game over
-- UI interactions and power-ups
-- Background music with seamless looping
+# Run development server
+npm start
+```
+
+## 📄 License
+
+This project is private and proprietary.
 
 ---
+
+**DigiDuo** - Fast-paced number matching with strategic depth!

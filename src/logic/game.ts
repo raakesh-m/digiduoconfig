@@ -1,135 +1,130 @@
 import { Grid, GridCell, Pair, LevelConfig } from '../types';
+import { DigiDuoEngine } from '../games/digiduo/DigiDuoEngine';
+import type { DigiDuoLevelConfig } from '../games/digiduo/DigiDuoEngine';
 
-// Match if equal or sum to 10
+const engine = new DigiDuoEngine();
+
 export const isValidPair = (a: number, b: number): boolean => {
   return a === b || a + b === 10;
 };
 
 export const generateGrid = (config: LevelConfig): Grid => {
-  const { gridRows, gridCols, startFilledRows, numberRange } = config;
-  const [minNum, maxNum] = numberRange;
+  const grid = engine.generateGrid(config as DigiDuoLevelConfig);
 
-  const cells: GridCell[][] = [];
-
-  for (let row = 0; row < gridRows; row++) {
-    const cellRow: GridCell[] = [];
-    for (let col = 0; col < gridCols; col++) {
-      const shouldFill = row < startFilledRows;
-      const value = shouldFill
-        ? Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum
-        : 0;
-
-      cellRow.push({
-        value,
-        row,
-        col,
-        isDulled: false,
-        id: `${row}-${col}`,
-      });
-    }
-    cells.push(cellRow);
-  }
-
-  ensureSolvablePairs(cells, config);
-
-  return {
-    cells,
-    rows: gridRows,
-    cols: gridCols,
-  };
-};
-
-// Ensure solvable pairs
-const ensureSolvablePairs = (cells: GridCell[][], config: LevelConfig): void => {
-  const { startFilledRows, gridCols, numberRange } = config;
-  const [minNum, maxNum] = numberRange;
-
-  let pairsCreated = 0;
-  const targetPairs = Math.min(3, Math.floor((startFilledRows * gridCols) / 4));
-
-  // Place pairs next to each other
-  for (let row = 0; row < startFilledRows && pairsCreated < targetPairs; row++) {
-    for (let col = 0; col < gridCols - 1 && pairsCreated < targetPairs; col += 2) {
-      const num = Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum;
-      cells[row][col].value = num;
-      cells[row][col + 1].value = 10 - num;
-      pairsCreated++;
-    }
-  }
-};
-
-export const addNewRow = (grid: Grid, config: LevelConfig): Grid => {
-  const { numberRange } = config;
-  const [minNum, maxNum] = numberRange;
-
-  // Find empty row
-  let targetRow = -1;
-  for (let row = 0; row < grid.rows; row++) {
-    const isEmpty = grid.cells[row].every(cell => cell.value === 0);
-    if (isEmpty) {
-      targetRow = row;
-      break;
-    }
-  }
-
-  if (targetRow === -1) return grid;
-
-  const newCells = grid.cells.map((row, rowIndex) => {
-    if (rowIndex === targetRow) {
-      return row.map(cell => ({
-        ...cell,
-        value: Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum,
-      }));
-    }
-    return row;
-  });
-
-  // Add solvable pair to new row
-  const newRow = newCells[targetRow];
-  if (newRow.length >= 2) {
-    const num = Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum;
-    newRow[0].value = num;
-    newRow[1].value = Math.random() > 0.5 ? num : 10 - num;
-  }
-
-  return {
-    ...grid,
-    cells: newCells,
-  };
-};
-
-export const findValidPairs = (grid: Grid): Pair[] => {
-  const pairs: Pair[] = [];
-  const activeCells = grid.cells.flat().filter(cell => cell.value > 0 && !cell.isDulled);
-
-  for (let i = 0; i < activeCells.length; i++) {
-    for (let j = i + 1; j < activeCells.length; j++) {
-      if (isValidPair(activeCells[i].value, activeCells[j].value)) {
-        pairs.push({
-          cell1: activeCells[i],
-          cell2: activeCells[j],
-        });
-      }
-    }
-  }
-
-  return pairs;
-};
-
-// Mark matched cells inactive
-export const applyMatch = (grid: Grid, cell1: GridCell, cell2: GridCell): Grid => {
-  const newCells = grid.cells.map(row =>
-    row.map(cell => {
-      if (cell.id === cell1.id || cell.id === cell2.id) {
-        return { ...cell, isDulled: true };
-      }
-      return cell;
-    })
+  const legacyCells: GridCell[][] = grid.cells.map(row =>
+    row.map(cell => ({
+      ...cell,
+      row: cell.position.row,
+      col: cell.position.col,
+    }))
   );
 
   return {
     ...grid,
-    cells: newCells,
+    cells: legacyCells,
+  };
+};
+
+export const addNewRow = (grid: Grid, config: LevelConfig): Grid => {
+  const genericGrid = {
+    ...grid,
+    cells: grid.cells.map(row =>
+      row.map(cell => ({
+        ...cell,
+        position: { row: cell.row, col: cell.col },
+      }))
+    ),
+  };
+
+  const gameState = {
+    grid: genericGrid,
+    selectedCells: [],
+    level: config,
+    timeRemaining: 0,
+    score: 0,
+    isGameOver: false,
+    isWon: false,
+    pairsFound: 0,
+    addRowsUsed: 0,
+  };
+
+  const updatedState = engine.onSpecialAction(gameState, 'addRow');
+
+  const legacyCells: GridCell[][] = updatedState.grid.cells.map(row =>
+    row.map(cell => ({
+      ...cell,
+      row: cell.position.row,
+      col: cell.position.col,
+    }))
+  );
+
+  return {
+    ...updatedState.grid,
+    cells: legacyCells,
+  };
+};
+
+export const findValidPairs = (grid: Grid): Pair[] => {
+  const genericGrid = {
+    ...grid,
+    cells: grid.cells.map(row =>
+      row.map(cell => ({
+        ...cell,
+        position: { row: cell.row, col: cell.col },
+      }))
+    ),
+  };
+
+  const genericPairs = engine.findValidPairs(genericGrid);
+
+  return genericPairs.map(pair => ({
+    cell1: {
+      ...pair.cell1,
+      row: pair.cell1.position.row,
+      col: pair.cell1.position.col,
+    },
+    cell2: {
+      ...pair.cell2,
+      row: pair.cell2.position.row,
+      col: pair.cell2.position.col,
+    },
+  }));
+};
+
+export const applyMatch = (grid: Grid, cell1: GridCell, cell2: GridCell): Grid => {
+  const genericGrid = {
+    ...grid,
+    cells: grid.cells.map(row =>
+      row.map(cell => ({
+        ...cell,
+        position: { row: cell.row, col: cell.col },
+      }))
+    ),
+  };
+
+  const genericCell1 = {
+    ...cell1,
+    position: { row: cell1.row, col: cell1.col },
+  };
+
+  const genericCell2 = {
+    ...cell2,
+    position: { row: cell2.row, col: cell2.col },
+  };
+
+  const updatedGrid = engine.applyMatch(genericGrid, genericCell1, genericCell2);
+
+  const legacyCells: GridCell[][] = updatedGrid.cells.map(row =>
+    row.map(cell => ({
+      ...cell,
+      row: cell.position.row,
+      col: cell.position.col,
+    }))
+  );
+
+  return {
+    ...updatedGrid,
+    cells: legacyCells,
   };
 };
 
@@ -138,15 +133,28 @@ export const canStillWin = (grid: Grid, addRowsLeft: number): boolean => {
 
   if (validPairs.length > 0) return true;
 
-  if (addRowsLeft > 0) return true;
+  if (addRowsLeft > 0) {
+    const hasEmptyRows = grid.cells.some(row =>
+      row.every(cell => cell.value === 0)
+    );
+    if (hasEmptyRows) return true;
+  }
 
   return false;
 };
 
-// Win when all cells matched
 export const isLevelComplete = (grid: Grid): boolean => {
-  const activeCells = grid.cells.flat().filter(cell => cell.value > 0 && !cell.isDulled);
-  return activeCells.length === 0;
+  const genericGrid = {
+    ...grid,
+    cells: grid.cells.map(row =>
+      row.map(cell => ({
+        ...cell,
+        position: { row: cell.row, col: cell.col },
+      }))
+    ),
+  };
+
+  return engine.isLevelComplete(genericGrid);
 };
 
 export const getFilledRowsCount = (grid: Grid): number => {

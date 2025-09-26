@@ -1,22 +1,24 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet, Dimensions } from 'react-native';
+import { GenericGrid } from './GenericGrid';
 import { GridCell } from './GridCell';
 import { Grid as GridType, GridCell as GridCellType, CellState } from '../types';
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface Props {
   grid: GridType;
   selectedCells: GridCellType[];
   invalidCells: GridCellType[];
   onCellPress: (cell: GridCellType) => void;
+  maxWidth?: number;
+  maxHeight?: number;
 }
 
 export const Grid: React.FC<Props> = ({
   grid,
   selectedCells,
   invalidCells,
-  onCellPress
+  onCellPress,
+  maxWidth,
+  maxHeight
 }) => {
   const getCellState = (cell: GridCellType): CellState => {
     if (cell.isDulled) return 'dulled';
@@ -25,46 +27,79 @@ export const Grid: React.FC<Props> = ({
     return 'normal';
   };
 
+  const genericGrid = {
+    ...grid,
+    cells: grid.cells.map(row =>
+      row.map(cell => ({
+        ...cell,
+        position: { row: cell.row, col: cell.col },
+      }))
+    ),
+  };
+
+  const genericSelectedCells = selectedCells.map(cell => ({
+    ...cell,
+    position: { row: cell.row, col: cell.col },
+  }));
+
+  const genericInvalidCells = invalidCells.map(cell => ({
+    ...cell,
+    position: { row: cell.row, col: cell.col },
+  }));
+
+  const renderCell = (cell: any, state: CellState, onPress: any, size: number) => {
+    const legacyCell: GridCellType = {
+      ...cell,
+      row: cell.position.row,
+      col: cell.position.col,
+    };
+
+    const legacyOnPress = (cellParam: any) => {
+      const legacyParam: GridCellType = {
+        ...cellParam,
+        row: cellParam.position.row,
+        col: cellParam.position.col,
+      };
+      onPress(legacyParam);
+    };
+
+    return (
+      <GridCell
+        key={cell.id}
+        cell={legacyCell}
+        state={state}
+        onPress={legacyOnPress}
+        size={size}
+      />
+    );
+  };
+
+  const genericGetCellState = (cell: any): CellState => {
+    const legacyCell: GridCellType = {
+      ...cell,
+      row: cell.position.row,
+      col: cell.position.col,
+    };
+    return getCellState(legacyCell);
+  };
+
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={styles.grid}>
-        {grid.cells.map((row, rowIndex) => (
-          <View key={rowIndex} style={styles.row}>
-            {row.map((cell) => (
-              <GridCell
-                key={cell.id}
-                cell={cell}
-                state={getCellState(cell)}
-                onPress={onCellPress}
-              />
-            ))}
-          </View>
-        ))}
-      </View>
-    </ScrollView>
+    <GenericGrid
+      grid={genericGrid}
+      selectedCells={genericSelectedCells}
+      invalidCells={genericInvalidCells}
+      onCellPress={(cell) => {
+        const legacyCell: GridCellType = {
+          ...cell,
+          row: cell.position.row,
+          col: cell.position.col,
+        };
+        onCellPress(legacyCell);
+      }}
+      maxWidth={maxWidth}
+      maxHeight={maxHeight}
+      getCellState={genericGetCellState}
+      renderCell={renderCell}
+    />
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingVertical: screenHeight * 0.025,
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-  grid: {
-    alignItems: 'center',
-    paddingHorizontal: screenWidth * 0.025,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-  },
-});

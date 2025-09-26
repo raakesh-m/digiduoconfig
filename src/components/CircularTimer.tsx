@@ -7,14 +7,15 @@ const { width: screenWidth } = Dimensions.get('window');
 interface Props {
   timeRemaining: number;
   totalTime: number;
+  size?: number;
 }
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-export const CircularTimer: React.FC<Props> = ({ timeRemaining, totalTime }) => {
+export const CircularTimer: React.FC<Props> = ({ timeRemaining, totalTime, size }) => {
   const animatedValue = useRef(new Animated.Value(0)).current;
 
-  const timerSize = Math.min(screenWidth * 0.2, 80);
+  const timerSize = size || Math.min(screenWidth * 0.2, 80);
   const radius = timerSize * 0.375;
   const strokeWidth = Math.max(timerSize * 0.075, 4);
   const circumference = 2 * Math.PI * radius;

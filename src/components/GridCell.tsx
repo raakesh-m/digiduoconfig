@@ -9,9 +9,10 @@ interface Props {
   cell: GridCellType;
   state: CellState;
   onPress: (cell: GridCellType) => void;
+  size?: number;
 }
 
-export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
+export const GridCell: React.FC<Props> = ({ cell, state, onPress, size }) => {
   const handlePress = () => {
     if (state === 'dulled') return;
     onPress(cell);
@@ -111,10 +112,32 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
     return '#AAAAAA';
   };
 
+  const cellSize = getCellSize(size);
+
   if (cell.value === 0) {
     return (
-      <View style={[styles.cell, styles.emptyCell]}>
-        <View style={styles.emptyIndicator} />
+      <View style={styles.cellContainer}>
+        <View style={[
+          styles.cell,
+          styles.emptyCell,
+          {
+            width: cellSize,
+            height: cellSize,
+            borderRadius: cellSize * 0.25,
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+          }
+        ]}>
+          <View style={[
+            styles.emptyIndicator,
+            {
+              width: cellSize * 0.3,
+              height: cellSize * 0.3,
+              borderRadius: cellSize * 0.15,
+            }
+          ]} />
+        </View>
       </View>
     );
   }
@@ -134,13 +157,22 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
           style={[
             styles.cell,
             {
+              width: cellSize,
+              height: cellSize,
+              borderRadius: cellSize * 0.25,
               opacity: state === 'dulled' ? 0.4 : 0.95,
               borderColor: getBorderColors()[0],
               borderWidth: state === 'selected' ? 2 : 1,
             }
           ]}
         >
-          <View style={styles.glassReflection} />
+          <View style={[
+            styles.glassReflection,
+            {
+              borderTopLeftRadius: cellSize * 0.25,
+              borderTopRightRadius: cellSize * 0.25,
+            }
+          ]} />
 
           <View style={styles.contentContainer}>
             <Text style={[
@@ -149,7 +181,7 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
               {
                 color: state === 'dulled' ? '#666666' :
                        state === 'selected' ? '#FFFFFF' : '#FFFFFF',
-                fontSize: getCellSize() * (cell.value >= 10 ? 0.4 : 0.5),
+                fontSize: cellSize * (cell.value >= 10 ? 0.4 : 0.5),
                 fontWeight: cell.value >= 7 ? '900' : '800',
               }
             ]}>
@@ -170,7 +202,8 @@ export const GridCell: React.FC<Props> = ({ cell, state, onPress }) => {
   );
 };
 
-const getCellSize = () => {
+const getCellSize = (customSize?: number) => {
+  if (customSize) return customSize;
   const baseSize = Math.min(screenWidth / 12, 45);
   return Math.max(baseSize, 35);
 };
@@ -191,9 +224,6 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   cell: {
-    width: getCellSize(),
-    height: getCellSize(),
-    borderRadius: getCellSize() * 0.25,
     justifyContent: 'center',
     alignItems: 'center',
     boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.09)',
@@ -208,8 +238,6 @@ const styles = StyleSheet.create({
     right: 0,
     height: '40%',
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderTopLeftRadius: getCellSize() * 0.25,
-    borderTopRightRadius: getCellSize() * 0.25,
   },
   contentContainer: {
     flex: 1,
@@ -232,24 +260,17 @@ const styles = StyleSheet.create({
     boxShadow: '0px 0px 2px rgba(255, 255, 255, 0.8)',
   },
   emptyCell: {
-    backgroundColor: 'transparent',
-    shadowOpacity: 0,
-    elevation: 0,
-    borderWidth: 0,
     justifyContent: 'center',
     alignItems: 'center',
+    opacity: 1,
   },
   emptyIndicator: {
-    width: getCellSize() * 0.2,
-    height: getCellSize() * 0.2,
-    borderRadius: getCellSize() * 0.1,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-    boxShadow: '0px 0px 4px rgba(255, 255, 255, 0.15)',
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    boxShadow: '0px 0px 4px rgba(255, 255, 255, 0.3)',
   },
   cellText: {
-    fontSize: getCellSize() * 0.5,
     fontWeight: '800',
     color: '#FFFFFF',
     textAlign: 'center',

@@ -3,19 +3,19 @@ import { Audio } from 'expo-av';
 import { Platform } from 'react-native';
 
 export type SoundName =
-  | 'cellSelect'     // When selecting a cell
-  | 'cellMatch'      // Successful match
-  | 'cellMismatch'   // Invalid match attempt
-  | 'rowAdd'         // Adding a new row
-  | 'levelComplete'  // Level completion
-  | 'gameOver'       // Game over
-  | 'buttonPress'    // UI button press
-  | 'tick'           // Timer tick (last 10 seconds)
-  | 'whoosh'         // Transitions/animations
-  | 'streak'         // Streak milestone
-  | 'powerup'        // Powerup activation
-  | 'welcomeMusic'   // Background welcome music
-  | 'gameMusic';     // In-game background music
+  | 'cellSelect'
+  | 'cellMatch'
+  | 'cellMismatch'
+  | 'rowAdd'
+  | 'levelComplete'
+  | 'gameOver'
+  | 'buttonPress'
+  | 'tick'
+  | 'whoosh'
+  | 'streak'
+  | 'powerup'
+  | 'welcomeMusic'
+  | 'gameMusic';
 
 interface SoundConfig {
   volume: number;
@@ -33,9 +33,9 @@ const SOUND_FILES: Record<SoundName, string> = {
   buttonPress: require('../../assets/wavs/Button press.wav'),
   tick: require('../../assets/wavs/Timer tick sound.wav'),
   whoosh: require('../../assets/wavs/whoosh.wav'),
-  streak: require('../../assets/wavs/cell matched.wav'), // Use match sound for streaks
+  streak: require('../../assets/wavs/cell matched.wav'),
   powerup: require('../../assets/wavs/bonus.wav'),
-  welcomeMusic: require('../../assets/wavs/in game music while playing.wav'), // Use game music for now
+  welcomeMusic: require('../../assets/wavs/in game music while playing.wav'),
   gameMusic: require('../../assets/wavs/in game music while playing.wav'),
 };
 
@@ -76,7 +76,6 @@ export const useSound = () => {
           playThroughEarpieceAndroid: false,
         });
 
-        // Preload all sounds
         for (const [soundName, soundFile] of Object.entries(SOUND_FILES)) {
           try {
             const { sound } = await Audio.Sound.createAsync(soundFile, {
@@ -98,7 +97,6 @@ export const useSound = () => {
     initializeAudio();
 
     return () => {
-      // Cleanup all sounds
       soundObjects.current.forEach(sound => {
         sound.unloadAsync().catch(console.warn);
       });
@@ -106,14 +104,12 @@ export const useSound = () => {
     };
   }, []);
 
-  // Rich Web Audio sound effects
   const playWebSoundEffect = useCallback((soundName: SoundName, ctx: AudioContext, config: Partial<SoundConfig> = {}) => {
     const now = ctx.currentTime;
     const volume = (config.volume ?? DEFAULT_CONFIGS[soundName].volume) * masterVolume.current;
 
     switch (soundName) {
       case 'cellSelect':
-        // Soft click with reverb
         const selectOsc = ctx.createOscillator();
         const selectGain = ctx.createGain();
         const selectFilter = ctx.createBiquadFilter();
@@ -138,8 +134,7 @@ export const useSound = () => {
         break;
 
       case 'cellMatch':
-        // Satisfying chord progression
-        const matchFreqs = [523, 659, 784]; // C, E, G chord
+        const matchFreqs = [523, 659, 784];
         const streakMultiplier = (config.rate ?? 1.0);
 
         matchFreqs.forEach((freq, i) => {
@@ -168,12 +163,10 @@ export const useSound = () => {
         break;
 
       case 'cellMismatch':
-        // Discord buzz with distortion
         const mismatchOsc = ctx.createOscillator();
         const mismatchGain = ctx.createGain();
         const distortion = ctx.createWaveShaper();
 
-        // Create distortion curve
         const samples = 44100;
         const curve = new Float32Array(samples);
         for (let i = 0; i < samples; i++) {
@@ -199,8 +192,7 @@ export const useSound = () => {
         break;
 
       case 'levelComplete':
-        // Victory fanfare with multiple harmonics
-        const fanfareNotes = [523, 659, 784, 1047]; // C, E, G, C octave
+        const fanfareNotes = [523, 659, 784, 1047];
         fanfareNotes.forEach((freq, i) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
@@ -222,7 +214,6 @@ export const useSound = () => {
         break;
 
       case 'streak':
-        // Rising cascade effect
         const streakCount = config.rate ?? 1;
         for (let i = 0; i < Math.min(streakCount, 8); i++) {
           const osc = ctx.createOscillator();
@@ -244,7 +235,6 @@ export const useSound = () => {
         break;
 
       case 'powerup':
-        // Energetic power-up sweep
         const powerOsc = ctx.createOscillator();
         const powerGain = ctx.createGain();
         const powerFilter = ctx.createBiquadFilter();
@@ -271,7 +261,6 @@ export const useSound = () => {
         break;
 
       default:
-        // Simple beep for other sounds
         const defaultOsc = ctx.createOscillator();
         const defaultGain = ctx.createGain();
 
@@ -305,13 +294,12 @@ export const useSound = () => {
 
     const playMelody = () => {
       if (musicType === 'welcomeMusic') {
-        // Gentle welcome melody
         const welcomeNotes = [
-          {freq: 523, duration: 0.8}, // C
-          {freq: 659, duration: 0.4}, // E
-          {freq: 784, duration: 0.8}, // G
-          {freq: 659, duration: 0.4}, // E
-          {freq: 523, duration: 1.2}, // C
+          {freq: 523, duration: 0.8},
+          {freq: 659, duration: 0.4},
+          {freq: 784, duration: 0.8},
+          {freq: 659, duration: 0.4},
+          {freq: 523, duration: 1.2},
         ];
 
         welcomeNotes.forEach((note, i) => {
@@ -341,12 +329,11 @@ export const useSound = () => {
           }, i * 800);
         });
       } else {
-        // Energetic game music
         const gameNotes = [
-          {freq: 440, duration: 0.3}, // A
-          {freq: 523, duration: 0.3}, // C
-          {freq: 659, duration: 0.3}, // E
-          {freq: 784, duration: 0.6}, // G
+          {freq: 440, duration: 0.3},
+          {freq: 523, duration: 0.3},
+          {freq: 659, duration: 0.3},
+          {freq: 784, duration: 0.6},
         ];
 
         gameNotes.forEach((note, i) => {
@@ -373,28 +360,23 @@ export const useSound = () => {
       }
     };
 
-    // Play once without looping
     playMelody();
   }, []);
 
   const stopMusic = useCallback(() => {
-    // Stop web audio music loop
     if (musicLoop.current) {
       clearInterval(musicLoop.current);
       musicLoop.current = null;
     }
 
-    // Stop mobile music (expo-av) but keep track of what was playing
     if (Platform.OS !== 'web' && currentMusic.current) {
       const musicSound = soundObjects.current.get(currentMusic.current);
       if (musicSound) {
         musicSound.stopAsync().catch(console.warn);
       }
-      // Don't clear currentMusic.current - we want to remember what was playing
     }
   }, []);
 
-  // Enable web audio on first user interaction
   const enableWebAudio = useCallback(() => {
     if (Platform.OS === 'web' && !webAudioEnabled.current) {
       webAudioEnabled.current = true;
@@ -410,12 +392,10 @@ export const useSound = () => {
       return;
     }
 
-    // On web, require user interaction first
     if (Platform.OS === 'web' && !webAudioEnabled.current) {
       enableWebAudio();
     }
 
-    // Enhanced Web Audio API with rich sound effects
     if (Platform.OS === 'web') {
       try {
         if (!audioContext.current) {
@@ -438,11 +418,8 @@ export const useSound = () => {
     const sound = soundObjects.current.get(soundName);
     if (!sound) {
       console.warn(`Sound not found: ${soundName}, using mobile fallback`);
-      // Mobile fallback - generate simple beep tones using expo-av
       if (Platform.OS !== 'web') {
         try {
-          // Create a simple tone using expo-av's audio system
-          // This is a fallback for when MP3 files fail to load
           console.warn('Using silent fallback for mobile - sound system will be silent');
           return;
         } catch (error) {
@@ -450,7 +427,6 @@ export const useSound = () => {
           return;
         }
       } else {
-        // Web fallback using Web Audio API
         try {
           if (!audioContext.current) {
             audioContext.current = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -474,11 +450,9 @@ export const useSound = () => {
     try {
       const status = await sound.getStatusAsync();
       if (status.isLoaded) {
-        // Stop if already playing
         await sound.stopAsync();
         await sound.setPositionAsync(0);
 
-        // Apply configuration
         const finalVolume = (config.volume ?? DEFAULT_CONFIGS[soundName].volume) * masterVolume.current;
         await sound.setVolumeAsync(finalVolume);
 
@@ -486,12 +460,10 @@ export const useSound = () => {
           await sound.setRateAsync(config.rate, true);
         }
 
-        // Handle looping for background music
         const shouldLoop = config.loop ?? DEFAULT_CONFIGS[soundName].loop ?? false;
         await sound.setIsLoopingAsync(shouldLoop);
 
 
-        // Track current music for mute/unmute functionality
         if (soundName === 'welcomeMusic' || soundName === 'gameMusic') {
           currentMusic.current = soundName;
         }
@@ -500,12 +472,9 @@ export const useSound = () => {
       }
     } catch (error) {
       console.warn(`Failed to play sound: ${soundName}, trying fallback`, error);
-      // Platform-specific fallback when expo-av fails
       if (Platform.OS !== 'web') {
-        // Mobile fallback - just log the issue for now
         console.warn('Mobile audio playback failed - sound will be silent');
       } else {
-        // Web fallback using Web Audio API
         try {
           if (!audioContext.current) {
             audioContext.current = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -525,11 +494,9 @@ export const useSound = () => {
     }
   }, []);
 
-  // Enable mobile audio and start welcome music on first user interaction
   const enableMobileAudio = useCallback(() => {
     if (Platform.OS !== 'web' && !mobileAudioEnabled.current) {
       mobileAudioEnabled.current = true;
-      // Start welcome music now that user has interacted
       playSound('welcomeMusic');
     }
   }, [playSound]);
@@ -537,7 +504,6 @@ export const useSound = () => {
   const setMasterVolume = useCallback(async (volume: number) => {
     masterVolume.current = Math.max(0, Math.min(1, volume));
 
-    // Update all loaded sounds
     soundObjects.current.forEach(async (sound) => {
       try {
         const status = await sound.getStatusAsync();
@@ -553,12 +519,9 @@ export const useSound = () => {
   const toggleMute = useCallback(() => {
     isMuted.current = !isMuted.current;
 
-    // Handle background music muting/unmuting
     if (isMuted.current) {
-      // Muted: stop all background music (but remember what was playing)
       stopMusic();
     } else {
-      // Unmuted: restart the last playing music if mobile audio is enabled
       if (Platform.OS !== 'web' && mobileAudioEnabled.current && currentMusic.current) {
         playSound(currentMusic.current);
       }
@@ -571,7 +534,6 @@ export const useSound = () => {
 
   const getMasterVolume = useCallback(() => masterVolume.current, []);
 
-  // Convenience functions for common game sounds
   const playCellSelect = useCallback(() => playSound('cellSelect'), [playSound]);
   const playCellMatch = useCallback((streakCount = 1) => {
     playSound('cellMatch', { rate: Math.min(1.2, 1.0 + (streakCount - 1) * 0.1) });
@@ -599,7 +561,6 @@ export const useSound = () => {
     enableWebAudio,
     enableMobileAudio,
     stopMusic,
-    // Convenience functions
     playCellSelect,
     playCellMatch,
     playCellMismatch,
